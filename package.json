@@ -1,0 +1,11 @@
+{
+  "name": "barmods-tunnel-web",
+  "version": "1.0.0",
+  "description": "Barmods Tunnel Web Panel - VIP Edition",
+  "scripts": {
+    "start": "node api/vpn.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
