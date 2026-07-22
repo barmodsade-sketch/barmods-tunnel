@@ -60,7 +60,7 @@
             
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-4 mt-5">Intelligence & AI</p>
             <button onclick="switchTab('ai', 'AI Barmods Core')" id="nav-ai" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-brain w-5 text-center text-pink-400"></i><span>AI Barmods</span></button>
-            <button onclick="switchTab('tofigure', 'To-Figure AI Maker')" id="nav-tofigure" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-user-astronaut w-5 text-center text-purple-400"></i><span>AI Maker</span></button>
+            <button onclick="switchTab('aistudio', 'AI Image Studio VIP')" id="nav-aistudio" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-wand-magic-sparkles w-5 text-center text-purple-400"></i><span>AI Studio</span></button>
             
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-4 mt-5">Utilities</p>
             <button onclick="switchTab('downloader', 'Media & Tools VIP')" id="nav-downloader" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-cloud-arrow-down w-5 text-center text-green-400"></i><span>Media & SSWeb</span></button>
@@ -81,6 +81,7 @@
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 pb-32 md:pb-8">
             
+            <!-- SECTION DASHBOARD -->
             <div id="sectionDashboard" class="block space-y-6">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="glass-card rounded-2xl p-5 relative"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total Users</p><h3 class="text-3xl font-outfit font-black text-white">284</h3></div>
@@ -102,6 +103,7 @@
                 </div>
             </div>
 
+            <!-- SECTION VPN -->
             <div id="sectionVpn" class="hidden-element">
                 <div class="glass-card rounded-3xl p-6 sm:p-8">
                     <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-lock text-red-500"></i> Developer Access Zone</h3>
@@ -128,6 +130,7 @@
                 </div>
             </div>
 
+            <!-- SECTION AI CHAT -->
             <div id="sectionAi" class="hidden-element">
                 <div class="glass-card rounded-3xl p-4 sm:p-6 flex flex-col h-[500px]">
                     <div class="flex items-center gap-3 border-b border-white/5 pb-3 mb-4"><i class="fa-solid fa-brain text-pink-500 text-xl"></i><div><h3 class="font-outfit font-bold text-white">AI Barmods Matrix</h3><p class="text-[9px] text-slate-500 uppercase font-mono-code">Powered by Groq Llama 3</p></div></div>
@@ -136,12 +139,32 @@
                 </div>
             </div>
 
-            <div id="sectionTofigure" class="hidden-element">
+            <!-- SECTION AI IMAGE STUDIO (TO-FIGURE & REMINI) -->
+            <div id="sectionAistudio" class="hidden-element">
                 <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
-                    <i class="fa-solid fa-user-astronaut absolute -right-6 -bottom-6 text-[150px] opacity-[0.03] text-purple-500 pointer-events-none"></i>
-                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> AI Figure Maker</h3>
-                    <form id="tofigureForm" class="space-y-6 relative z-10">
+                    <i class="fa-solid fa-wand-magic-sparkles absolute -right-6 -bottom-6 text-[150px] opacity-[0.03] text-purple-500 pointer-events-none"></i>
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-image text-purple-400"></i> AI Image Studio</h3>
+                    
+                    <form id="aistudioForm" class="space-y-6 relative z-10">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Fitur AI</label>
+                                <select id="aiServiceMode" onchange="toggleAiService()" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
+                                    <option value="tofigure">🧸 To-Figure (Ubah 3D)</option>
+                                    <option value="remini">✨ Remini (Jernihkan HD)</option>
+                                </select>
+                            </div>
+                            <div id="tfStyleGroup">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Style Rendering (Khusus 3D)</label>
+                                <select id="tfVersion" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
+                                    <option value="v1">V1 (Standar Figure)</option>
+                                    <option value="v2">V2 (Alternatif Style)</option>
+                                    <option value="v3">V3 (Detail Maksimal)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-white/5">
                             <div>
                                 <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Sumber Foto</label>
                                 <select id="tfMode" onchange="toggleTfMode()" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
@@ -149,28 +172,22 @@
                                     <option value="url">🔗 Gunakan Link (URL)</option>
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Style Rendering</label>
-                                <select id="tfVersion" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
-                                    <option value="v1">🧸 V1 (Standar Figure)</option>
-                                    <option value="v2">🎎 V2 (Alternatif Style)</option>
-                                    <option value="v3">🪆 V3 (Detail Maksimal)</option>
-                                </select>
+                            <div id="tfUploadGroup">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Pilih File Foto</label>
+                                <input type="file" id="tfFile" accept="image/*" class="input-vip w-full rounded-xl p-3 font-mono-code text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 cursor-pointer">
+                            </div>
+                            <div id="tfUrlGroup" class="hidden-element">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Link URL Foto</label>
+                                <input type="url" id="tfUrl" placeholder="https://..." class="input-vip w-full rounded-xl p-4 font-mono-code text-sm">
                             </div>
                         </div>
-                        <div id="tfUploadGroup">
-                            <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Pilih File Foto</label>
-                            <input type="file" id="tfFile" accept="image/*" class="input-vip w-full rounded-xl p-3 font-mono-code text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 cursor-pointer">
-                        </div>
-                        <div id="tfUrlGroup" class="hidden-element">
-                            <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Link URL Foto</label>
-                            <input type="url" id="tfUrl" placeholder="https://..." class="input-vip w-full rounded-xl p-4 font-mono-code text-sm">
-                        </div>
-                        <button type="submit" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(168,85,247,0.3)]"><i class="fa-solid fa-fire"></i> SULAP JADI FIGURE!</button>
+
+                        <button type="submit" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(168,85,247,0.3)]"><i class="fa-solid fa-fire"></i> SULAP GAMBAR SEKARANG!</button>
                     </form>
                 </div>
             </div>
 
+            <!-- SECTION MULTI-CLOUD UPLOADER -->
             <div id="sectionTourl" class="hidden-element">
                 <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
                     <i class="fa-solid fa-cloud-arrow-up absolute -right-6 -bottom-6 text-[150px] opacity-[0.03] text-blue-500 pointer-events-none"></i>
@@ -256,9 +273,9 @@
         <button onclick="switchTab('dashboard', 'Server Dashboard')" id="mob-nav-dashboard" class="flex-none w-[16%] flex flex-col items-center gap-1 text-cyan-400 scale-110 pt-1"><i class="fa-solid fa-gauge-high text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Dash</span></button>
         <button onclick="switchTab('vpn', 'Deployment Center')" id="mob-nav-vpn" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-network-wired text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">VPN</span></button>
         <button onclick="switchTab('ai', 'AI Barmods Core')" id="mob-nav-ai" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-brain text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">AI</span></button>
-        <button onclick="switchTab('tofigure', 'To-Figure AI Maker')" id="mob-nav-tofigure" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-user-astronaut text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Maker</span></button>
-        <button onclick="switchTab('downloader', 'Media & Tools VIP')" id="mob-nav-downloader" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-cloud-arrow-down text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Media</span></button>
-        <button onclick="switchTab('developer', 'Developer Profile')" id="mob-nav-developer" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-user-ninja text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Dev</span></button>
+        <button onclick="switchTab('aistudio', 'AI Image Studio VIP')" id="mob-nav-aistudio" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-wand-magic-sparkles text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Studio</span></button>
+        <button onclick="switchTab('tourl', 'Multi-Cloud Uploader')" id="mob-nav-tourl" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-cloud-arrow-up text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Cloud</span></button>
+        <button onclick="switchTab('downloader', 'Media & Search VIP')" id="mob-nav-downloader" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-cloud-arrow-down text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Media</span></button>
     </nav>
 
     <script>
@@ -281,7 +298,7 @@
 
         function switchTab(tab, title) {
             document.getElementById('resultBox').classList.add('hidden-element'); if(title) document.getElementById('pageTitle').innerText = title;
-            ['dashboard', 'vpn', 'ai', 'tofigure', 'tourl', 'downloader', 'tools', 'developer'].forEach(t => {
+            ['dashboard', 'vpn', 'ai', 'aistudio', 'tourl', 'downloader', 'tools', 'developer'].forEach(t => {
                 const nav = document.getElementById('nav-' + t); const mobNav = document.getElementById('mob-nav-' + t); const sec = document.getElementById('section' + t.charAt(0).toUpperCase() + t.slice(1));
                 if (t === tab) {
                     if(nav) nav.className = 'nav-item nav-active w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm';
@@ -289,7 +306,7 @@
                     if(sec) sec.classList.remove('hidden-element');
                 } else {
                     if(nav) nav.className = 'nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm';
-                    if(mobNav && mobNav.id !== 'mob-nav-tools') mobNav.className = 'flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1 transition-all';
+                    if(mobNav && mobNav.id !== 'mob-nav-tools' && mobNav.id !== 'mob-nav-developer') mobNav.className = 'flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1 transition-all';
                     if(sec) sec.classList.add('hidden-element');
                 }
             });
@@ -315,18 +332,32 @@
             }; reader.readAsDataURL(file);
         });
 
-        // ======================= LOGIC TO-FIGURE AI =======================
+        // ======================= LOGIC AI IMAGE STUDIO =======================
+        function toggleAiService() {
+            const mode = document.getElementById('aiServiceMode').value;
+            if (mode === 'remini') document.getElementById('tfStyleGroup').classList.add('hidden-element');
+            else document.getElementById('tfStyleGroup').classList.remove('hidden-element');
+        }
         function toggleTfMode() { const mode = document.getElementById('tfMode').value; if (mode === 'url') { document.getElementById('tfUrlGroup').classList.remove('hidden-element'); document.getElementById('tfUploadGroup').classList.add('hidden-element'); } else { document.getElementById('tfUploadGroup').classList.remove('hidden-element'); document.getElementById('tfUrlGroup').classList.add('hidden-element'); } }
-        document.getElementById('tofigureForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); document.getElementById('loadingText').innerText = "Menyihir Foto..."; document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            let mode = document.getElementById('tfMode').value; let payload = { action: 'tofigure', version: document.getElementById('tfVersion').value };
-            if (mode === 'url') { payload.imageUrl = document.getElementById('tfUrl').value.trim(); if (!payload.imageUrl) return alert("URL Kosong!"); executeTofigure(payload); } 
-            else { let fileInput = document.getElementById('tfFile'); if (!fileInput.files[0]) { document.getElementById('videoLoader').classList.add('hidden-element'); return alert("Pilih foto dulu!"); } if (fileInput.files[0].size > 3.5 * 1024 * 1024) { document.getElementById('videoLoader').classList.add('hidden-element'); return alert("Maksimal 3.5 MB!"); } let reader = new FileReader(); reader.onload = function(e) { payload.imageBase64 = e.target.result; executeTofigure(payload); }; reader.readAsDataURL(fileInput.files[0]); }
+        
+        document.getElementById('aistudioForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); 
+            let aiMode = document.getElementById('aiServiceMode').value;
+            document.getElementById('loadingText').innerText = aiMode === 'remini' ? "Menjernihkan Foto..." : "Menyihir Foto 3D..."; 
+            document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            let mode = document.getElementById('tfMode').value; let payload = { action: aiMode, version: document.getElementById('tfVersion').value };
+            if (mode === 'url') { payload.imageUrl = document.getElementById('tfUrl').value.trim(); if (!payload.imageUrl) return alert("URL Kosong!"); executeAiStudio(payload); } 
+            else { let fileInput = document.getElementById('tfFile'); if (!fileInput.files[0]) { document.getElementById('videoLoader').classList.add('hidden-element'); return alert("Pilih foto dulu!"); } if (fileInput.files[0].size > 3.5 * 1024 * 1024) { document.getElementById('videoLoader').classList.add('hidden-element'); return alert("Maksimal 3.5 MB!"); } let reader = new FileReader(); reader.onload = function(e) { payload.imageBase64 = e.target.result; executeAiStudio(payload); }; reader.readAsDataURL(fileInput.files[0]); }
         });
-        async function executeTofigure(payload) {
+        
+        async function executeAiStudio(payload) {
             try {
                 const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const resData = await response.json(); document.getElementById('videoLoader').classList.add('hidden-element');
-                if (resData.status === 'success') { let html = `<div class="text-center"><h3 class="text-lg font-bold text-white mb-4">🪄 Hasil ToFigure ${payload.version.toUpperCase()}</h3><img src="${resData.data}" class="w-full max-w-sm mx-auto rounded-2xl border border-white/10 shadow-[0_0_20px_rgba(168,85,247,0.3)] object-cover mb-6"><a href="${resData.data}" download="Barmods_ToFigure_${Date.now()}.jpg" class="text-white font-bold bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-3 rounded-xl inline-block shadow-lg hover:scale-105 transition"><i class="fa-solid fa-download mr-2"></i> Download Gambar</a></div>`; document.getElementById('outputText').innerHTML = html; } 
+                if (resData.status === 'success') { 
+                    let titleHtml = payload.action === 'remini' ? '✨ Hasil Remini HD' : `🪄 Hasil ToFigure ${payload.version.toUpperCase()}`;
+                    let html = `<div class="text-center"><h3 class="text-lg font-bold text-white mb-4">${titleHtml}</h3><img src="${resData.data}" class="w-full max-w-sm mx-auto rounded-2xl border border-white/10 shadow-[0_0_20px_rgba(168,85,247,0.3)] object-cover mb-6"><a href="${resData.data}" download="Barmods_AI_${Date.now()}.jpg" class="text-white font-bold bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-3 rounded-xl inline-block shadow-lg hover:scale-105 transition"><i class="fa-solid fa-download mr-2"></i> Download Gambar</a></div>`; document.getElementById('outputText').innerHTML = html; 
+                } 
                 else document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR:\n${resData.message}</span>`;
             } catch (err) { document.getElementById('videoLoader').classList.add('hidden-element'); document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR / TIMEOUT. Coba link foto!</span>`; }
         }
