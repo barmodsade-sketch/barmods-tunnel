@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 3: AI IMAGE STUDIO (TO-FIGURE 3D & REMINI HD) 🖼️✨
+    // FITUR 3: AI IMAGE STUDIO (AUTO FALLBACK ANTI-ERROR) 🖼️✨
     // =======================================================
     if (action === 'tofigure' || action === 'remini') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN!" });
@@ -83,31 +83,65 @@ module.exports = async (req, res) => {
             }
             if (!targetUrl) return res.status(400).json({ status: "error", message: "Foto / URL tidak valid!" });
 
-            // Routing Endpoint berdasarkan jenis AI
-            let endpoint = '';
+            // LOOP ENDPOINT CADANGAN (Mencegah "Failed to upscale image")
+            let endpoints = [];
             if (action === 'remini') {
-                endpoint = '/api/tools/remini';
+                endpoints = ['/api/tools/remini', '/api/tools/hd', '/api/tools/upscale', '/api/maker/remini', '/api/image/remini'];
             } else {
-                endpoint = version === 'v2' ? '/api/maker/tofigure-v2' : version === 'v3' ? '/api/maker/tofigure-v3' : '/api/maker/tofigure';
+                endpoints = [version === 'v2' ? '/api/maker/tofigure-v2' : version === 'v3' ? '/api/maker/tofigure-v3' : '/api/maker/tofigure'];
             }
 
-            const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${encodeURIComponent(targetUrl)}&apikey=${btcKey}`;
-            
-            let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 60000, validateStatus: () => true });
-            const contentType = btcRes.headers['content-type'] || '';
-            
-            if (contentType.includes('application/json') || !contentType.includes('image')) {
-                const textResponse = Buffer.from(btcRes.data).toString('utf-8'); let jsonResponse;
-                try { jsonResponse = JSON.parse(textResponse); } catch(e) { return res.status(400).json({ status: "error", message: `Server API Botcahx Down: ${textResponse.substring(0, 50)}` }); }
-                if (jsonResponse.status && jsonResponse.result) {
-                    let finalUrl = jsonResponse.result.url || jsonResponse.result;
-                    let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
-                    return res.status(200).json({ status: "success", data: `data:${imgDownload.headers['content-type']};base64,${Buffer.from(imgDownload.data).toString('base64')}` });
+            let successBuffer = null;
+            let finalContentType = '';
+            let lastErrorMessage = 'Unknown Error';
+
+            // Coba eksekusi satu per satu
+            for (let ep of endpoints) {
+                try {
+                    const apiUrl = `https://api.botcahx.eu.org${ep}?url=${encodeURIComponent(targetUrl)}&apikey=${btcKey}`;
+                    let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 45000, validateStatus: () => true });
+                    
+                    const contentType = btcRes.headers['content-type'] || '';
+                    
+                    if (contentType.includes('application/json') || !contentType.includes('image')) {
+                        const textResponse = Buffer.from(btcRes.data).toString('utf-8'); 
+                        let jsonResponse;
+                        try { jsonResponse = JSON.parse(textResponse); } catch(e) { lastErrorMessage = "Server API Down"; continue; }
+                        
+                        // Jika ternyata JSON isinya link sukses
+                        if (jsonResponse.status && jsonResponse.result) {
+                            let finalUrl = jsonResponse.result.url || jsonResponse.result;
+                            let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
+                            successBuffer = Buffer.from(imgDownload.data);
+                            finalContentType = imgDownload.headers['content-type'];
+                            break; // BERHASIL! Keluar dari loop
+                        }
+                        
+                        // Jika Gagal (Misal: "Failed to upscale image"), catat error lalu lanjut loop berikutnya
+                        lastErrorMessage = jsonResponse.message || jsonResponse.error || "Ditolak API Botcahx.";
+                        continue; 
+                    }
+                    
+                    // Jika langsung mengembalikan buffer gambar
+                    successBuffer = Buffer.from(btcRes.data);
+                    finalContentType = contentType;
+                    break; // BERHASIL! Keluar dari loop
+
+                } catch (err) {
+                    lastErrorMessage = err.message;
                 }
-                return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Ditolak API Botcahx. Pastikan ada wajah di foto!" });
             }
-            return res.status(200).json({ status: "success", data: `data:${contentType};base64,${Buffer.from(btcRes.data).toString('base64')}` });
-        } catch (error) { return res.status(500).json({ status: "error", message: `Gagal: ${error.message}` }); }
+
+            // Jika semua endpoint dari Botcahx gagal memproses
+            if (!successBuffer) {
+                return res.status(400).json({ status: "error", message: lastErrorMessage });
+            }
+
+            // Jika berhasil
+            const finalBase64 = successBuffer.toString('base64');
+            return res.status(200).json({ status: "success", data: `data:${finalContentType};base64,${finalBase64}` });
+
+        } catch (error) { return res.status(500).json({ status: "error", message: `Sistem Error: ${error.message}` }); }
     }
 
     // =======================================================
