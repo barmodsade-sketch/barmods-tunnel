@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: TO-FIGURE AI (UBAH FOTO JADI BONEKA/3D) 🤖🖼️
+    // FITUR 2: TO-FIGURE AI (ANTI 400 ERROR) 🤖🖼️
     // =======================================================
     if (action === 'tofigure') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN DI VERCEL!" });
@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
             const imageBase64 = req.body.imageBase64;
             const version = req.body.version || 'v1';
 
-            // Tahap 1: Jika User Upload Foto dari Galeri (Base64), kita bypass upload ke Telegraph
+            // Tahap 1: Upload Bypass ke Telegraph dengan User-Agent
             if (imageBase64) {
                 const buffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
                 const boundary = '----BarmodsFormBoundaryVIP';
@@ -50,9 +50,15 @@ module.exports = async (req, res) => {
                 ]);
 
                 const upRes = await axios.post('https://telegra.ph/upload', payload, {
-                    headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': payload.length }
+                    headers: { 
+                        'Content-Type': `multipart/form-data; boundary=${boundary}`, 
+                        'Content-Length': payload.length,
+                        'User-Agent': 'Mozilla/5.0'
+                    },
+                    validateStatus: () => true
                 });
-                if (!upRes.data || !upRes.data[0] || !upRes.data[0].src) throw new Error("Upload ke server sementara gagal.");
+                
+                if (!upRes.data || !upRes.data[0] || !upRes.data[0].src) throw new Error("Upload ke server sementara (Telegraph) gagal.");
                 targetUrl = 'https://telegra.ph' + upRes.data[0].src;
             }
 
@@ -63,23 +69,42 @@ module.exports = async (req, res) => {
             if (version === 'v2') endpoint = '/api/maker/tofigure-v2';
             else if (version === 'v3') endpoint = '/api/maker/tofigure-v3';
 
-            const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${targetUrl}&apikey=${btcKey}`;
+            // WAJIB encodeURIComponent agar link tidak patah dibaca oleh API Botcahx
+            const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${encodeURIComponent(targetUrl)}&apikey=${btcKey}`;
             
-            // Tahap 3: Tarik Gambar dari API Botcahx
-            let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 60000 });
-            const contentType = btcRes.headers['content-type'];
+            // Tahap 3: Tarik Gambar dari API Botcahx (Kebal Error 400)
+            let btcRes = await axios.get(apiUrl, { 
+                responseType: 'arraybuffer', 
+                timeout: 60000,
+                validateStatus: () => true // Ini yang mengobati error Axios 400
+            });
             
-            if (!contentType || !contentType.includes('image')) {
-                const jsonError = JSON.parse(Buffer.from(btcRes.data).toString('utf-8'));
-                return res.status(400).json({ status: "error", message: jsonError.message || jsonError.error || "Gagal memproses AI Gambar. Mungkin wajah tidak terdeteksi." });
+            const contentType = btcRes.headers['content-type'] || '';
+            
+            // Tahap 4: Filter Output (JSON Error, JSON Link, atau Direct Image)
+            if (contentType.includes('application/json') || !contentType.includes('image')) {
+                const jsonText = Buffer.from(btcRes.data).toString('utf-8');
+                let jsonResponse;
+                try { jsonResponse = JSON.parse(jsonText); } catch(e) { jsonResponse = { message: "Unknown Error dari API Botcahx" }; }
+                
+                // Jika Botcahx ngirim JSON isinya link url sukses
+                if (jsonResponse.status && jsonResponse.result) {
+                    let finalUrl = jsonResponse.result.url || jsonResponse.result;
+                    let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
+                    const finalBase64 = Buffer.from(imgDownload.data).toString('base64');
+                    return res.status(200).json({ status: "success", data: `data:${imgDownload.headers['content-type']};base64,${finalBase64}` });
+                }
+
+                // Jika Botcahx nolak foto (karena gak ada wajah dll)
+                return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Proses ditolak API. Pastikan gambar jelas & ada wajah!" });
             }
 
-            // Tahap 4: Convert hasil kembali ke Base64 agar web Frontend bisa menampilkannya
+            // Jika API langsung mengembalikan Gambar Buffer
             const finalBase64 = Buffer.from(btcRes.data).toString('base64');
             return res.status(200).json({ status: "success", data: `data:${contentType};base64,${finalBase64}` });
 
         } catch (error) {
-            return res.status(500).json({ status: "error", message: `AI ToFigure Error: ${error.message}` });
+            return res.status(500).json({ status: "error", message: `Sistem Server Gagal: ${error.message}` });
         }
     }
 
