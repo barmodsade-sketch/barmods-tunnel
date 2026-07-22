@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: TO-FIGURE AI (ANTI 400 ERROR) 🤖🖼️
+    // FITUR 2: TO-FIGURE AI (MULTI-UPLOADER BYPASS) 🤖🖼️
     // =======================================================
     if (action === 'tofigure') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN DI VERCEL!" });
@@ -39,27 +39,47 @@ module.exports = async (req, res) => {
             const imageBase64 = req.body.imageBase64;
             const version = req.body.version || 'v1';
 
-            // Tahap 1: Upload Bypass ke Telegraph dengan User-Agent
+            // Tahap 1: Multi-Uploader Bypass (Tmpfiles -> Catbox)
             if (imageBase64) {
                 const buffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
                 const boundary = '----BarmodsFormBoundaryVIP';
-                const payload = Buffer.concat([
-                    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="image.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`),
-                    buffer,
-                    Buffer.from(`\r\n--${boundary}--\r\n`)
-                ]);
 
-                const upRes = await axios.post('https://telegra.ph/upload', payload, {
-                    headers: { 
-                        'Content-Type': `multipart/form-data; boundary=${boundary}`, 
-                        'Content-Length': payload.length,
-                        'User-Agent': 'Mozilla/5.0'
-                    },
-                    validateStatus: () => true
-                });
-                
-                if (!upRes.data || !upRes.data[0] || !upRes.data[0].src) throw new Error("Upload ke server sementara (Telegraph) gagal.");
-                targetUrl = 'https://telegra.ph' + upRes.data[0].src;
+                // Uploader 1: Tmpfiles (Sangat cepat & ramah Vercel)
+                try {
+                    const payloadTmp = Buffer.concat([
+                        Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="image.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`),
+                        buffer,
+                        Buffer.from(`\r\n--${boundary}--\r\n`)
+                    ]);
+                    const upRes = await axios.post('https://tmpfiles.org/api/v1/upload', payloadTmp, {
+                        headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': payloadTmp.length, 'User-Agent': 'Mozilla/5.0' },
+                        validateStatus: () => true
+                    });
+                    if (upRes.data && upRes.data.data && upRes.data.data.url) {
+                        targetUrl = upRes.data.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+                    }
+                } catch (e) {}
+
+                // Uploader 2: Catbox.moe (Jika Tmpfiles gagal/maintenance)
+                if (!targetUrl) {
+                    try {
+                        const payloadCatbox = Buffer.concat([
+                            Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="reqtype"\r\n\r\nfileupload\r\n`),
+                            Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="fileToUpload"; filename="image.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`),
+                            buffer,
+                            Buffer.from(`\r\n--${boundary}--\r\n`)
+                        ]);
+                        const catRes = await axios.post('https://catbox.moe/user/api.php', payloadCatbox, {
+                            headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': payloadCatbox.length, 'User-Agent': 'Mozilla/5.0' },
+                            validateStatus: () => true
+                        });
+                        if (typeof catRes.data === 'string' && catRes.data.startsWith('http')) {
+                            targetUrl = catRes.data.trim();
+                        }
+                    } catch (e) {}
+                }
+
+                if (!targetUrl) throw new Error("Semua server uploader sementara diblokir (Tmpfiles & Catbox down).");
             }
 
             if (!targetUrl) return res.status(400).json({ status: "error", message: "Foto / URL tidak valid!" });
@@ -69,25 +89,23 @@ module.exports = async (req, res) => {
             if (version === 'v2') endpoint = '/api/maker/tofigure-v2';
             else if (version === 'v3') endpoint = '/api/maker/tofigure-v3';
 
-            // WAJIB encodeURIComponent agar link tidak patah dibaca oleh API Botcahx
             const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${encodeURIComponent(targetUrl)}&apikey=${btcKey}`;
             
             // Tahap 3: Tarik Gambar dari API Botcahx (Kebal Error 400)
             let btcRes = await axios.get(apiUrl, { 
                 responseType: 'arraybuffer', 
                 timeout: 60000,
-                validateStatus: () => true // Ini yang mengobati error Axios 400
+                validateStatus: () => true 
             });
             
             const contentType = btcRes.headers['content-type'] || '';
             
-            // Tahap 4: Filter Output (JSON Error, JSON Link, atau Direct Image)
+            // Tahap 4: Filter Output
             if (contentType.includes('application/json') || !contentType.includes('image')) {
                 const jsonText = Buffer.from(btcRes.data).toString('utf-8');
                 let jsonResponse;
                 try { jsonResponse = JSON.parse(jsonText); } catch(e) { jsonResponse = { message: "Unknown Error dari API Botcahx" }; }
                 
-                // Jika Botcahx ngirim JSON isinya link url sukses
                 if (jsonResponse.status && jsonResponse.result) {
                     let finalUrl = jsonResponse.result.url || jsonResponse.result;
                     let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
@@ -95,8 +113,7 @@ module.exports = async (req, res) => {
                     return res.status(200).json({ status: "success", data: `data:${imgDownload.headers['content-type']};base64,${finalBase64}` });
                 }
 
-                // Jika Botcahx nolak foto (karena gak ada wajah dll)
-                return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Proses ditolak API. Pastikan gambar jelas & ada wajah!" });
+                return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Proses ditolak API. Pastikan wajah terlihat jelas & rasio foto normal!" });
             }
 
             // Jika API langsung mengembalikan Gambar Buffer
