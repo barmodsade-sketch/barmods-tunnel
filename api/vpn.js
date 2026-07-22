@@ -29,22 +29,19 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: SOSMED DOWNLOADER (TIKTOK & YOUTUBE) 📥
+    // FITUR 2: SOSMED DOWNLOADER (TIKTOK & YOUTUBE URL) 📥
     // =======================================================
     if (action === 'tiktok' || action === 'youtube') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN DI VERCEL!" });
         if (!username) return res.status(400).json({ status: "error", message: "URL tidak boleh kosong!" });
         
         try {
-            // Tentukan endpoint berdasarkan action dari Frontend
             let endpoint = action === 'youtube' ? '/api/dowloader/yt' : '/api/dowloader/tiktok';
             const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${encodeURIComponent(username)}&apikey=${btcKey}`;
             
             let response = await axios.get(apiUrl, { timeout: 20000 });
             
-            if (!response.data || response.data.status === false) {
-                return res.status(400).json({ status: "error", message: response.data?.message || "Gagal mengambil data dari Server Botcahx." });
-            }
+            if (!response.data || response.data.status === false) return res.status(400).json({ status: "error", message: response.data?.message || "Gagal mengambil data dari Server Botcahx." });
             return res.status(200).json({ status: "success", data: response.data.result });
         } catch (error) {
             return res.status(500).json({ status: "error", message: "Koneksi ke API Botcahx Gagal/Timeout." });
@@ -52,7 +49,50 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 3: CORE AI BARMODS ASSISTANT (POWERED BY GROQ)
+    // FITUR 3: YOUTUBE PLAY VIP (PENCARIAN JUDUL LAGU) 🎵
+    // =======================================================
+    if (action === 'yt_play') {
+        if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN DI VERCEL!" });
+        
+        try {
+            // Tahap 1: Cari Lagu di YouTube via Botcahx (Pengganti module yt-search)
+            let searchUrl = `https://api.botcahx.eu.org/api/search/yts?query=${encodeURIComponent(username)}&apikey=${btcKey}`;
+            let searchRes = await axios.get(searchUrl, { timeout: 15000 });
+
+            if (!searchRes.data || !searchRes.data.result || searchRes.data.result.length === 0) {
+                return res.status(400).json({ status: "error", message: "Lagu tidak ditemukan di YouTube." });
+            }
+
+            let video = searchRes.data.result[0];
+
+            // Tahap 2: Tembak URL hasil pencarian ke mesin Downloader Botcahx
+            let dlUrl = `https://api.botcahx.eu.org/api/dowloader/yt?url=${encodeURIComponent(video.url)}&apikey=${btcKey}`;
+            let dlRes = await axios.get(dlUrl, { timeout: 25000 });
+
+            if (!dlRes.data || dlRes.data.status === false) {
+                 return res.status(400).json({ status: "error", message: "Gagal mengekstrak audio dari lagu tersebut." });
+            }
+
+            let resultData = dlRes.data.result;
+            return res.status(200).json({
+                status: "success",
+                data: {
+                    type: 'yt_play',
+                    title: video.title || resultData.title,
+                    thumbnail: video.image || video.thumbnail || resultData.thumb,
+                    duration: video.timestamp || video.duration || "Unknown",
+                    views: video.views || "-",
+                    url: video.url,
+                    audio: resultData.mp3 || resultData.audio || resultData.url_audio || resultData.url
+                }
+            });
+        } catch (error) {
+            return res.status(500).json({ status: "error", message: "Pencarian lagu gagal / Server API Timeout." });
+        }
+    }
+
+    // =======================================================
+    // FITUR 4: CORE AI BARMODS ASSISTANT (POWERED BY GROQ)
     // =======================================================
     if (action === 'ai_chat') {
         if (!groqKey) return res.status(200).json({ status: "success", reply: "Bos, API Key Groq belum dipasang di Vercel (.env)." });
@@ -71,7 +111,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 4: VPN PANEL DEPLOYMENT
+    // FITUR 5: VPN PANEL DEPLOYMENT
     // =======================================================
     if (!domain || !auth) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (VPS_DOMAIN/AUTH) belum disetting!" });
     if (!adminPin) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (ADMIN_PIN) belum dibuat di Vercel!" });
