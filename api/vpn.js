@@ -10,10 +10,7 @@ module.exports = async (req, res) => {
     // =======================================================
     const domain = process.env.VPS_DOMAIN;
     const auth = process.env.VPS_AUTH;
-    const adminPin = process.env.ADMIN_PIN; // Kunci rahasia khusus Mas (Developer)
-    
-    // API pihak ketiga juga kita taruh di .env (dengan nilai default jika lupa diisi)
-    const apiXlBase = process.env.API_XL_BASE || 'https://xl-ku.my.id/api';
+    const adminPin = process.env.ADMIN_PIN; 
     const apiAiBase = process.env.API_AI_BASE || 'https://text.pollinations.ai/';
 
     // =======================================================
@@ -31,20 +28,38 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: PROXY TOOLS XL & AXIS
+    // FITUR 2: PROXY TOOLS XL & AXIS (API HASIL HACK / SNIFFING) 🕵️‍♂️
     // =======================================================
     if (action && action.startsWith('xl_')) {
         try {
             let url = '';
-            if (action === 'xl_kuota') url = `${apiXlBase}/cek-kuota?msisdn=${username}`;
-            else if (action === 'xl_circle') url = `${apiXlBase}/cek-circle?msisdn=${username}`;
-            else if (action === 'xl_akrab') url = `${apiXlBase}/area-akrab`;
-            else if (action === 'xl_bepu') url = `${apiXlBase}/area-bepu`;
+            
+            // Menggunakan API Asli hasil Sniffing Mas:
+            if (action === 'xl_kuota' || action === 'xl_circle') {
+                url = `https://xl-ku.my.id/check/all-info/${username}`;
+            }
+            // Untuk cek area, kita tebak struktur barunya (jika salah, nanti kita sniffing lagi area-nya)
+            else if (action === 'xl_akrab') {
+                url = `https://xl-ku.my.id/check/area-akrab`; 
+            }
+            else if (action === 'xl_bepu') {
+                url = `https://xl-ku.my.id/check/area-bepu`;
+            }
 
-            let response = await axios.get(url, { validateStatus: () => true, timeout: 15000 });
+            // Headers rahasia agar dikira berasal dari web aslinya (Bypass Anti-Bot)
+            let response = await axios.get(url, { 
+                validateStatus: () => true, 
+                timeout: 15000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36',
+                    'Accept': 'application/json',
+                    'Referer': 'https://xl-ku.my.id/'
+                }
+            });
+            
             return res.status(200).json(response.data);
         } catch (error) {
-            return res.status(500).json({ status: false, message: "Server API XL sedang Down." });
+            return res.status(500).json({ status: false, message: "Server API XL sedang Down atau diblokir." });
         }
     }
 
