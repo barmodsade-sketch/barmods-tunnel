@@ -11,6 +11,7 @@ module.exports = async (req, res) => {
     const domain = process.env.VPS_DOMAIN;
     const auth = process.env.VPS_AUTH;
     const adminPin = process.env.ADMIN_PIN; 
+    const groqKey = process.env.GROQ_API_KEY; // <-- API KEY GROQ BARU
 
     // =======================================================
     // FITUR 1: REAL-TIME SERVER MONITORING (VPS SENSOR) 📊
@@ -27,32 +28,37 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: CORE AI BARMODS ASSISTANT (BYPASS 402) 🤖🔥
+    // FITUR 2: CORE AI BARMODS ASSISTANT (POWERED BY GROQ) 🚀
     // =======================================================
     if (action === 'ai_chat') {
-        const systemPrompt = "Kamu adalah AI Barmods, asisten pintar berbasis kecerdasan buatan untuk Barmods Tunnel VIP Data Center. Jawab dengan keren, ramah, logis, dan pro.";
-        
+        if (!groqKey) {
+            return res.status(200).json({ status: "success", reply: "⚠️ **SISTEM MENGALAMI KENDALA** ⚠️\nBos, API Key Groq belum dipasang di Vercel (.env). Silakan tambahkan variabel `GROQ_API_KEY` agar saya bisa beroperasi maksimal!" });
+        }
+
         try {
-            // SERVER UTAMA: Menggunakan API AI Cloudflare Worker (Kebal Blokir Vercel)
-            const url = `https://darkness.ashlynn.workers.dev/chat/?prompt=${encodeURIComponent(username)}&system=${encodeURIComponent(systemPrompt)}`;
-            let response = await axios.get(url, { timeout: 15000 });
+            const systemPrompt = "Kamu adalah AI Barmods, asisten pintar berbasis kecerdasan buatan untuk Barmods Tunnel VIP Data Center. Jawab dengan keren, ramah, logis, ringkas dan pro.";
             
-            // Ekstrak jawaban dari server
-            let aiReply = response.data.response || response.data.answer || response.data.message || response.data;
-            if (typeof aiReply === 'object') aiReply = JSON.stringify(aiReply);
-            
+            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+                model: "llama3-8b-8192", // Model super cepat dari Meta
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: username } // username berisi pertanyaan dari input user di HTML
+                ],
+                temperature: 0.7
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${groqKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 15000
+            });
+
+            const aiReply = response.data.choices[0].message.content;
             return res.status(200).json({ status: "success", reply: aiReply });
+            
         } catch (error) {
-            try {
-                // SERVER CADANGAN (FALLBACK): Berjalan otomatis jika server utama down
-                const fallbackUrl = `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(username)}`;
-                let resFallback = await axios.get(fallbackUrl, { timeout: 15000 });
-                
-                let replyFb = resFallback.data.response || resFallback.data.reply || "Halo Bos! Sistem AI sedang dalam mode pemulihan ringan. Ada yang bisa dibantu?";
-                return res.status(200).json({ status: "success", reply: replyFb });
-            } catch (fallbackErr) {
-                return res.status(500).json({ status: "error", message: `Jaringan AI down (402 Bypass Failed).` });
-            }
+            let errorMsg = error.response ? error.response.data.error.message : error.message;
+            return res.status(500).json({ status: "error", message: `Koneksi ke Server Groq Gagal: ${errorMsg}` });
         }
     }
 
