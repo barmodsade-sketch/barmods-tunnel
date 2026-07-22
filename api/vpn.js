@@ -29,15 +29,17 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: SOSMED DOWNLOADER (TIKTOK/IG/DLL) 📥
+    // FITUR 2: SOSMED DOWNLOADER (TIKTOK & YOUTUBE) 📥
     // =======================================================
-    if (action === 'tiktok') {
+    if (action === 'tiktok' || action === 'youtube') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN DI VERCEL!" });
         if (!username) return res.status(400).json({ status: "error", message: "URL tidak boleh kosong!" });
         
         try {
-            // URL target kita tumpang lewat variabel 'username' dari form HTML
-            const apiUrl = `https://api.botcahx.eu.org/api/dowloader/tiktok?url=${encodeURIComponent(username)}&apikey=${btcKey}`;
+            // Tentukan endpoint berdasarkan action dari Frontend
+            let endpoint = action === 'youtube' ? '/api/dowloader/yt' : '/api/dowloader/tiktok';
+            const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${encodeURIComponent(username)}&apikey=${btcKey}`;
+            
             let response = await axios.get(apiUrl, { timeout: 20000 });
             
             if (!response.data || response.data.status === false) {
@@ -69,30 +71,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 4: PROXY TOOLS XL & AXIS
-    // =======================================================
-    if (action && action.startsWith('xl_')) {
-        try {
-            let url = '';
-            if (action === 'xl_kuota' || action === 'xl_circle') url = `https://xl-ku.my.id/check/all-info/${username}`;
-            else if (action === 'xl_akrab') url = `https://xl-ku.my.id/check/area-akrab`; 
-            else if (action === 'xl_bepu') url = `https://xl-ku.my.id/check/area-bepu`;
-
-            let response = await axios.get(url, { 
-                validateStatus: () => true, timeout: 15000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K)', 'Accept': 'application/json', 'Referer': 'https://xl-ku.my.id/',
-                    'Xl-Cd10e88edb': 'wwBPZDHZca7_-3OPhO1KYvr27lNMFHAQexl5kbv6lQgVqpsLtMTBrXW8z-vWiPM_HzbTwdqO1DbXZj8DjMzqbWFMKvluyIKUT2pOr-12K5zRrHTsCW_MpZk9-4EoRRij99vIn-5_h_QjRxxUnu_v06RyV69HvPnZ35bH1h3IttNqYiaBQ'
-                }
-            });
-            return res.status(200).json(response.data);
-        } catch (error) {
-            return res.status(500).json({ status: false, message: "Server API XL sedang Down atau diblokir." });
-        }
-    }
-
-    // =======================================================
-    // FITUR 5: VPN PANEL DEPLOYMENT
+    // FITUR 4: VPN PANEL DEPLOYMENT
     // =======================================================
     if (!domain || !auth) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (VPS_DOMAIN/AUTH) belum disetting!" });
     if (!adminPin) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (ADMIN_PIN) belum dibuat di Vercel!" });
