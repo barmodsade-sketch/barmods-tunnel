@@ -27,30 +27,37 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: CORE AI BARMODS ASSISTANT (ANTI-BLOKIR) 🤖
+    // FITUR 2: CORE AI BARMODS ASSISTANT (BYPASS 402) 🤖🔥
     // =======================================================
     if (action === 'ai_chat') {
+        const systemPrompt = "Kamu adalah AI Barmods, asisten pintar berbasis kecerdasan buatan untuk Barmods Tunnel VIP Data Center. Jawab dengan keren, ramah, logis, dan pro.";
+        
         try {
-            const systemPrompt = "Kamu adalah AI Barmods, asisten pintar berbasis kecerdasan buatan untuk Barmods Tunnel VIP Data Center. Jawab dengan keren, ramah, logis, dan pro.";
-            const url = `https://text.pollinations.ai/${encodeURIComponent(username)}?system=${encodeURIComponent(systemPrompt)}`;
+            // SERVER UTAMA: Menggunakan API AI Cloudflare Worker (Kebal Blokir Vercel)
+            const url = `https://darkness.ashlynn.workers.dev/chat/?prompt=${encodeURIComponent(username)}&system=${encodeURIComponent(systemPrompt)}`;
+            let response = await axios.get(url, { timeout: 15000 });
             
-            // Bypass Anti-Bot Server AI dengan User-Agent PC
-            let response = await axios.get(url, { 
-                timeout: 12000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/plain'
-                }
-            });
+            // Ekstrak jawaban dari server
+            let aiReply = response.data.response || response.data.answer || response.data.message || response.data;
+            if (typeof aiReply === 'object') aiReply = JSON.stringify(aiReply);
             
-            return res.status(200).json({ status: "success", reply: response.data });
+            return res.status(200).json({ status: "success", reply: aiReply });
         } catch (error) {
-            return res.status(500).json({ status: "error", message: `Jaringan AI sibuk / diblokir. Detail: ${error.message}` });
+            try {
+                // SERVER CADANGAN (FALLBACK): Berjalan otomatis jika server utama down
+                const fallbackUrl = `https://api.ryzendesu.vip/api/ai/chatgpt?text=${encodeURIComponent(username)}`;
+                let resFallback = await axios.get(fallbackUrl, { timeout: 15000 });
+                
+                let replyFb = resFallback.data.response || resFallback.data.reply || "Halo Bos! Sistem AI sedang dalam mode pemulihan ringan. Ada yang bisa dibantu?";
+                return res.status(200).json({ status: "success", reply: replyFb });
+            } catch (fallbackErr) {
+                return res.status(500).json({ status: "error", message: `Jaringan AI down (402 Bypass Failed).` });
+            }
         }
     }
 
     // =======================================================
-    // FITUR 3: PROXY TOOLS XL & AXIS (API HASIL HACKING VIP) 🕵️‍♂️🔥
+    // FITUR 3: PROXY TOOLS XL & AXIS (API HASIL HACKING VIP) 🕵️‍♂️
     // =======================================================
     if (action && action.startsWith('xl_')) {
         try {
