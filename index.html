@@ -3,431 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barmods Tunnel | VIP Network Panel</title>
+    <title>Barmods Tunnel | Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap');
         
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #030712; 
-            color: #f8fafc;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Tech Grid & Animated Glow Background */
-        .bg-grid {
-            position: fixed;
-            inset: 0;
-            z-index: -2;
-            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-        .bg-glow {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background: radial-gradient(circle at 20% 40%, rgba(6, 182, 212, 0.12), transparent 40%),
-                        radial-gradient(circle at 80% 60%, rgba(139, 92, 246, 0.12), transparent 40%);
-            animation: breathe 8s ease-in-out infinite alternate;
-        }
-
-        @keyframes breathe {
-            0% { opacity: 0.7; transform: scale(1); }
-            100% { opacity: 1; transform: scale(1.05); }
-        }
-
-        /* Ultra Premium Glass Card */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 0 0 20px rgba(6, 182, 212, 0.05);
-        }
-
-        .font-outfit { font-family: 'Outfit', sans-serif; }
-        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f8fafc; overflow: hidden; }
         
-        .text-glow {
-            background: linear-gradient(to right, #00f2fe, #4facfe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 242, 254, 0.4);
-        }
-
-        /* Input VIP Styling */
-        .input-vip {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .input-vip:focus {
-            background: rgba(0, 0, 0, 0.6);
-            border-color: #00f2fe;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
-            outline: none;
-        }
+        /* Background Effects */
+        .bg-grid { position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 30px 30px; }
+        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 15% 30%, rgba(6, 182, 212, 0.08), transparent 40%), radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.08), transparent 40%); animation: breathe 8s ease-in-out infinite alternate; }
+        @keyframes breathe { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 1; transform: scale(1.1); } }
+        
+        /* Glass & Shadows */
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .glass-sidebar { background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-header { background: rgba(2, 6, 23, 0.6); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        /* Typography */
+        .font-outfit { font-family: 'Outfit', sans-serif; } .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .text-glow { background: linear-gradient(to right, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(0, 242, 254, 0.3); }
+        
+        /* Form Inputs */
+        .input-vip { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); color: #e2e8f0; transition: all 0.3s ease; }
+        .input-vip:focus { background: rgba(0, 0, 0, 0.6); border-color: #00f2fe; box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); outline: none; }
         select option { background-color: #0f172a; color: #fff; }
+        
+        /* Buttons */
+        .btn-vip { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); background-size: 200% auto; transition: 0.5s; }
+        .btn-vip:hover { background-position: right center; box-shadow: 0 8px 20px rgba(0, 114, 255, 0.3); transform: translateY(-1px); }
+        .btn-orange-glow { background: linear-gradient(135deg, #f97316 0%, #dc2626 100%); background-size: 200% auto; transition: 0.5s; }
+        .btn-orange-glow:hover { background-position: right center; box-shadow: 0 8px 20px rgba(234, 88, 12, 0.3); transform: translateY(-1px); }
+        
+        /* Sidebar Nav Item */
+        .nav-item { transition: all 0.3s ease; }
+        .nav-active { background: linear-gradient(90deg, rgba(6,182,212,0.1) 0%, transparent 100%); border-left: 4px solid #22d3ee; color: #22d3ee; }
+        .nav-inactive { border-left: 4px solid transparent; color: #94a3b8; }
+        .nav-inactive:hover { background: rgba(255,255,255,0.03); color: #e2e8f0; }
 
-        /* Button Gradient */
-        .btn-vip {
-            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-            background-size: 200% auto;
-            transition: 0.5s;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-vip:hover {
-            background-position: right center;
-            box-shadow: 0 10px 25px rgba(0, 114, 255, 0.4);
-            transform: translateY(-2px);
-        }
-
-        /* Tab Switcher */
-        .tab-btn { transition: all 0.3s ease; }
-        .tab-active { background: rgba(0, 242, 254, 0.15); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.3); }
-        .tab-inactive { color: #64748b; border: 1px solid transparent; }
-        .tab-inactive:hover { color: #cbd5e1; background: rgba(255,255,255,0.05); }
+        /* Sub Tab */
+        .sub-tab-active { background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); color: white; border: none; } 
+        .sub-tab-inactive { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); } 
+        .sub-tab-inactive:hover { background: rgba(255,255,255,0.1); color: white; }
 
         .hidden-element { display: none !important; }
+        
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; } 
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; } 
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; } 
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.5); }
     </style>
 </head>
-<body class="flex items-center justify-center p-4 sm:p-8">
+<body class="flex h-screen w-full">
 
-    <div class="bg-grid"></div>
-    <div class="bg-glow"></div>
+    <div class="bg-grid"></div><div class="bg-glow"></div>
 
-    <div class="glass-panel w-full max-w-3xl rounded-[2rem] p-6 sm:p-10 relative z-10">
+    <!-- ==============================
+         LEFT SIDEBAR (Desktop)
+         ============================== -->
+    <aside class="w-72 glass-sidebar hidden md:flex flex-col h-full z-20">
+        <!-- Logo -->
+        <div class="p-6 flex items-center gap-4 border-b border-white/5">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                <i class="fa-solid fa-server text-xl text-cyan-400"></i>
+            </div>
+            <div>
+                <h1 class="font-outfit font-black text-xl text-glow tracking-wide">BARMODS</h1>
+                <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Admin Command Center</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 py-6 space-y-2 overflow-y-auto custom-scrollbar px-3">
+            <p class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3 px-4">Main Menu</p>
+            
+            <button onclick="switchTab('vpn', 'Deployment Center')" id="nav-vpn" class="nav-item nav-active w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm">
+                <i class="fa-solid fa-network-wired w-5 text-center"></i>
+                <span class="tracking-wide">VPN Panel</span>
+            </button>
+            
+            <button onclick="switchTab('tools', 'IP Tracker & Radar')" id="nav-tools" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm">
+                <i class="fa-solid fa-satellite-dish w-5 text-center"></i>
+                <span class="tracking-wide">IP Lookup</span>
+            </button>
+            
+            <button onclick="switchTab('xl', 'XL & Axis Utilities')" id="nav-xl" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm">
+                <i class="fa-solid fa-sim-card w-5 text-center"></i>
+                <span class="tracking-wide">XL & AXIS</span>
+            </button>
+        </nav>
+
+        <!-- System Status -->
+        <div class="p-6 border-t border-white/5">
+            <div class="glass-card rounded-xl p-4 flex items-center gap-3">
+                <div class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-300">System Online</p>
+                    <p class="text-[10px] text-slate-500">Connected to Vercel API</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==============================
+         MAIN CONTENT AREA
+         ============================== -->
+    <main class="flex-1 flex flex-col h-full relative z-10 w-full">
         
         <!-- Header -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 mb-4 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
-                <i class="fa-solid fa-server text-3xl text-cyan-400"></i>
+        <header class="glass-header h-20 px-6 sm:px-10 flex items-center justify-between z-20">
+            <!-- Mobile Logo (Shows only on mobile) -->
+            <div class="md:hidden flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+                    <i class="fa-solid fa-server text-cyan-400"></i>
+                </div>
+                <h1 class="font-outfit font-bold text-lg text-glow uppercase">Barmods</h1>
             </div>
-            <h1 class="text-4xl sm:text-5xl font-outfit font-black text-glow tracking-tight uppercase">BARMODS TUNNEL</h1>
-            <p class="text-sm text-slate-400 font-medium tracking-widest uppercase mt-2">
-                VIP Network & Data Center
-            </p>
-        </div>
 
-        <!-- Tab Navigation -->
-        <div class="flex space-x-2 bg-[#020617] p-1.5 rounded-xl mb-8 border border-slate-800 shadow-inner">
-            <button id="btnTabVpn" onclick="switchTab('vpn')" class="tab-btn tab-active w-1/2 py-3 rounded-lg font-bold text-sm tracking-wide flex justify-center items-center gap-2">
-                <i class="fa-solid fa-network-wired"></i> VPN PANEL
-            </button>
-            <button id="btnTabTools" onclick="switchTab('tools')" class="tab-btn tab-inactive w-1/2 py-3 rounded-lg font-bold text-sm tracking-wide flex justify-center items-center gap-2">
-                <i class="fa-solid fa-satellite-dish"></i> IP LOOKUP
-            </button>
-        </div>
+            <!-- Page Title (Desktop) -->
+            <div class="hidden md:block">
+                <h2 id="pageTitle" class="text-2xl font-outfit font-bold text-white tracking-wide">Deployment Center</h2>
+                <p class="text-xs text-slate-400">Manage your virtual private networks securely.</p>
+            </div>
 
-        <!-- ==============================
-             SECTION 1: VPN PANEL FORM
-             ============================== -->
-        <div id="sectionVpn" class="transition-all duration-500">
-            <form id="vpnForm" class="space-y-6">
-                <!-- Row 1 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Command Action</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-terminal absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500"></i>
-                            <select id="action" class="input-vip w-full rounded-xl p-3.5 pl-11 appearance-none cursor-pointer">
-                                <option value="create">Deploy New Server</option>
-                                <option value="trial">Generate Trial</option>
-                                <option value="renew">Renew Access</option>
-                                <option value="delete">Destroy Account</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-600"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Tunnel Protocol</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-blue-400"></i>
-                            <select id="protocol" class="input-vip w-full rounded-xl p-3.5 pl-11 appearance-none cursor-pointer">
-                                <option value="vmess">VMESS (Xray)</option>
-                                <option value="vless">VLESS (Xray)</option>
-                                <option value="trojan">TROJAN (Xray)</option>
-                                <option value="ssh">SSH / OVPN</option>
-                                <option value="shadowsocks">SHADOWSOCKS</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-600"></i>
-                        </div>
-                    </div>
+            <!-- Right: Clock & Profile -->
+            <div class="flex items-center gap-6">
+                <div class="hidden sm:flex items-center gap-2 text-slate-400 bg-black/20 px-4 py-2 rounded-full border border-white/5">
+                    <i class="fa-regular fa-clock text-cyan-500"></i>
+                    <span id="liveClock" class="text-sm font-mono-code font-bold text-slate-300">00:00:00</span>
                 </div>
-
-                <!-- Row 2 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Client Username</label>
-                        <div class="relative">
-                            <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                            <input type="text" id="username" placeholder="Username..." required class="input-vip w-full rounded-xl p-3.5 pl-11">
-                        </div>
+                <div class="flex items-center gap-3 border-l border-white/10 pl-6">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-white">Administrator</p>
+                        <p class="text-[10px] text-cyan-400 uppercase tracking-widest">VIP Access</p>
                     </div>
-                    <div id="passGroup" class="hidden-element">
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">SSH Password</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-fingerprint absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                            <input type="text" id="password" placeholder="Password..." class="input-vip w-full rounded-xl p-3.5 pl-11">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 3 -->
-                <div class="grid grid-cols-3 gap-4" id="detailGroup">
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Validity (Days)</label>
-                        <div class="relative">
-                            <i class="fa-regular fa-clock absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="number" id="exp" value="30" class="input-vip w-full rounded-xl p-3.5 pl-9 sm:pl-11 text-center font-bold">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Device Limit</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-microchip absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="number" id="iplimit" value="2" class="input-vip w-full rounded-xl p-3.5 pl-9 sm:pl-11 text-center font-bold">
-                        </div>
-                    </div>
-                    <div id="quotaGroup">
-                        <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Bandwidth (GB)</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-wifi absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="number" id="quota" value="0" placeholder="0 = Unli" class="input-vip w-full rounded-xl p-3.5 pl-9 sm:pl-11 text-center font-bold">
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" id="btnSubmitVpn" class="btn-vip w-full mt-4 text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3">
-                    <i class="fa-solid fa-bolt"></i> EXECUTE DEPLOYMENT
-                </button>
-            </form>
-        </div>
-
-        <!-- ==============================
-             SECTION 2: IP LOOKUP FORM
-             ============================== -->
-        <div id="sectionTools" class="hidden-element transition-all duration-500">
-            <form id="toolsForm" class="space-y-6">
-                <div>
-                    <label class="block text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest pl-1">Target IP Address / Domain</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-globe absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500"></i>
-                        <input type="text" id="ipTarget" placeholder="Contoh: 8.8.8.8 atau google.com" required class="input-vip w-full rounded-xl p-4 pl-12 font-mono-code">
-                    </div>
-                    <p class="text-xs text-slate-500 mt-2 pl-1"><i class="fa-solid fa-circle-info"></i> Sistem akan melacak detail ISP, Negara, Kota, dan Koordinat dari IP target.</p>
-                </div>
-
-                <button type="submit" id="btnSubmitTools" class="btn-vip w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3">
-                    <i class="fa-solid fa-radar"></i> START TRACKING
-                </button>
-            </form>
-        </div>
-
-        <!-- ==============================
-             UNIVERSAL TERMINAL RESULT BOX
-             ============================== -->
-        <div id="resultBox" class="mt-10 hidden-element relative z-10 transition-all duration-500">
-            <!-- Terminal Header -->
-            <div class="bg-[#0f172a] rounded-t-xl px-4 py-3 flex items-center border border-b-0 border-slate-700/50">
-                <div class="flex gap-2 w-20">
-                    <div class="w-3.5 h-3.5 rounded-full bg-red-500/80 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.4)]"></div>
-                    <div class="w-3.5 h-3.5 rounded-full bg-yellow-500/80 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.4)]"></div>
-                    <div class="w-3.5 h-3.5 rounded-full bg-green-500/80 border border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.4)]"></div>
-                </div>
-                <div class="flex-1 text-center text-xs font-mono-code text-slate-500 tracking-wider">root@barmods-server:~#</div>
-                <div class="w-20 text-right">
-                    <button onclick="copyResult()" class="text-xs bg-slate-800 hover:bg-slate-700 transition px-3 py-1.5 rounded border border-slate-700 text-slate-300 flex items-center gap-2 ml-auto">
-                        <i class="fa-regular fa-copy"></i> Copy
-                    </button>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=0284c7&color=fff&rounded=true&bold=true" class="w-10 h-10 rounded-full border-2 border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
                 </div>
             </div>
-            <!-- Terminal Body -->
-            <div class="bg-[#020617] border border-slate-700/50 p-1 rounded-b-xl relative shadow-2xl">
-                <!-- Scanline effect -->
-                <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-10 pointer-events-none opacity-20"></div>
-                
-                <pre id="outputText" class="p-5 text-[#00ff41] font-mono-code text-sm overflow-x-auto whitespace-pre-wrap leading-relaxed relative z-20"></pre>
+        </header>
+
+        <!-- Scrollable Dashboard Content -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 pb-28 md:pb-8">
+            
+            <!-- Dashboard Stats Widget -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="glass-card rounded-2xl p-5 flex flex-col justify-between border-t-2 border-t-cyan-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Node</p>
+                        <i class="fa-solid fa-cubes text-slate-500"></i>
+                    </div>
+                    <h3 class="text-2xl font-outfit font-bold text-white">1</h3>
+                </div>
+                <div class="glass-card rounded-2xl p-5 flex flex-col justify-between border-t-2 border-t-emerald-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Uptime</p>
+                        <i class="fa-solid fa-stopwatch text-slate-500"></i>
+                    </div>
+                    <h3 class="text-2xl font-outfit font-bold text-white text-emerald-400">99.9%</h3>
+                </div>
+                <div class="glass-card rounded-2xl p-5 flex flex-col justify-between border-t-2 border-t-purple-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Protocols</p>
+                        <i class="fa-solid fa-shield-halved text-slate-500"></i>
+                    </div>
+                    <h3 class="text-2xl font-outfit font-bold text-white">5 Active</h3>
+                </div>
+                <div class="glass-card rounded-2xl p-5 flex flex-col justify-between border-t-2 border-t-orange-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">API Status</p>
+                        <i class="fa-solid fa-wifi text-slate-500"></i>
+                    </div>
+                    <h3 class="text-2xl font-outfit font-bold text-white text-orange-400">Secure</h3>
+                </div>
             </div>
+
+            <!-- Main Workspace Container -->
+            <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <!-- Decor -->
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500 rounded-full blur-[100px] opacity-20"></div>
+
+                <!-- SECTION 1: VPN PANEL -->
+                <div id="sectionVpn" class="block animate-[fadeIn_0.5s_ease-out]">
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3"><i class="fa-solid fa-terminal text-cyan-400 mr-2"></i> Server Configuration</h3>
+                    <form id="vpnForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Action</label>
+                                <div class="relative"><i class="fa-solid fa-wand-magic-sparkles absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500"></i>
+                                    <select id="action" class="input-vip w-full rounded-xl p-3.5 pl-11 appearance-none cursor-pointer"><option value="create">Deploy New Server</option><option value="trial">Generate Trial</option><option value="renew">Renew Access</option><option value="delete">Destroy Account</option></select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Protocol</label>
+                                <div class="relative"><i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-blue-400"></i>
+                                    <select id="protocol" class="input-vip w-full rounded-xl p-3.5 pl-11 appearance-none cursor-pointer"><option value="vmess">VMESS (Xray)</option><option value="vless">VLESS (Xray)</option><option value="trojan">TROJAN (Xray)</option><option value="ssh">SSH / OVPN</option><option value="shadowsocks">SHADOWSOCKS</option></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Username</label>
+                                <div class="relative"><i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i><input type="text" id="username" placeholder="Enter username..." required class="input-vip w-full rounded-xl p-3.5 pl-11 font-mono-code text-sm"></div>
+                            </div>
+                            <div id="passGroup" class="hidden-element">
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Password</label>
+                                <div class="relative"><i class="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i><input type="text" id="password" placeholder="SSH Password..." class="input-vip w-full rounded-xl p-3.5 pl-11 font-mono-code text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4" id="detailGroup">
+                            <div>
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1 text-center sm:text-left">Days</label>
+                                <div class="relative"><i class="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hidden sm:block"></i><input type="number" id="exp" value="30" class="input-vip w-full rounded-xl p-3.5 sm:pl-11 text-center font-bold"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1 text-center sm:text-left">Limit IP</label>
+                                <div class="relative"><i class="fa-solid fa-microchip absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hidden sm:block"></i><input type="number" id="iplimit" value="2" class="input-vip w-full rounded-xl p-3.5 sm:pl-11 text-center font-bold"></div>
+                            </div>
+                            <div id="quotaGroup">
+                                <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1 text-center sm:text-left">Quota GB</label>
+                                <div class="relative"><i class="fa-solid fa-database absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hidden sm:block"></i><input type="number" id="quota" value="0" placeholder="0 = Unli" class="input-vip w-full rounded-xl p-3.5 sm:pl-11 text-center font-bold"></div>
+                            </div>
+                        </div>
+                        <button type="submit" id="btnSubmitVpn" class="btn-vip w-full mt-2 text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3"><i class="fa-solid fa-bolt"></i> EXECUTE DEPLOYMENT</button>
+                    </form>
+                </div>
+
+                <!-- SECTION 2: IP LOOKUP -->
+                <div id="sectionTools" class="hidden-element animate-[fadeIn_0.5s_ease-out]">
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3"><i class="fa-solid fa-satellite-dish text-purple-400 mr-2"></i> IP & Domain Radar</h3>
+                    <form id="toolsForm" class="space-y-6">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Target Address</label>
+                            <div class="relative"><i class="fa-solid fa-globe absolute left-4 top-1/2 -translate-y-1/2 text-purple-500"></i><input type="text" id="ipTarget" placeholder="e.g., 8.8.8.8 or google.com" required class="input-vip w-full rounded-xl p-4 pl-12 font-mono-code"></div>
+                            <p class="text-xs text-slate-500 mt-2 pl-1"><i class="fa-solid fa-circle-info"></i> Retrieve detailed ISP, location, and geo-coordinates data.</p>
+                        </div>
+                        <button type="submit" id="btnSubmitTools" class="btn-vip w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3"><i class="fa-solid fa-crosshairs"></i> START TRACKING</button>
+                    </form>
+                </div>
+
+                <!-- SECTION 3: XL & AXIS -->
+                <div id="sectionXl" class="hidden-element animate-[fadeIn_0.5s_ease-out]">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-white/10 pb-4 gap-4">
+                        <h3 class="text-lg font-outfit font-bold text-white"><i class="fa-solid fa-sim-card text-orange-400 mr-2"></i> Cellular Utilities</h3>
+                        <div class="flex space-x-2 bg-black/30 p-1 rounded-lg border border-white/5 w-full sm:w-auto">
+                            <button id="btnSubTabNomor" onclick="switchSubTab('nomor')" class="sub-tab-active flex-1 sm:w-28 py-1.5 rounded-md text-xs font-bold transition-all shadow-lg shadow-blue-500/20">Cek Nomor</button>
+                            <button id="btnSubTabArea" onclick="switchSubTab('area')" class="sub-tab-inactive flex-1 sm:w-28 py-1.5 rounded-md text-xs font-bold transition-all">Cek Area</button>
+                        </div>
+                    </div>
+
+                    <div id="subSectionNomor" class="space-y-6 block">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Target Number</label>
+                            <div class="relative"><i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-orange-400"></i><input type="text" id="msisdnXl" placeholder="Ex: 0878xxx / 62878xxx" maxlength="16" class="input-vip w-full rounded-xl p-4 pl-12 font-mono-code text-orange-100 text-lg"></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button onclick="prosesXl('kuota')" class="btn-vip py-4 rounded-xl font-bold flex justify-center items-center gap-2 text-white"><i class="fa-solid fa-box-open"></i> Cek Kuota</button>
+                            <button onclick="prosesXl('circle')" class="btn-orange-glow py-4 rounded-xl font-bold flex justify-center items-center gap-2 text-white"><i class="fa-solid fa-users"></i> Validasi Circle</button>
+                        </div>
+                    </div>
+
+                    <div id="subSectionArea" class="hidden-element space-y-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button onclick="prosesArea('akrab')" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white py-3.5 rounded-xl font-bold transition flex justify-center items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]"><i class="fa-solid fa-map-location-dot"></i> Load Area Akrab</button>
+                            <button onclick="prosesArea('bepu')" class="btn-orange-glow text-white py-3.5 rounded-xl font-bold transition flex justify-center items-center gap-2"><i class="fa-solid fa-map-pin"></i> Load Bebas Puas</button>
+                        </div>
+                        <div class="relative mt-2"><i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i><input type="text" id="searchAreaInput" onkeyup="filterTable()" placeholder="Ketik nama kota atau kabupaten..." class="input-vip w-full rounded-xl p-3.5 pl-11 text-sm bg-black/50"></div>
+                        
+                        <div class="bg-[#020617] border border-slate-700/50 rounded-xl overflow-hidden shadow-2xl max-h-[300px] overflow-y-auto custom-scrollbar">
+                            <table class="w-full text-left border-collapse" id="tableArea">
+                                <thead class="bg-slate-800/95 sticky top-0 backdrop-blur-md z-10">
+                                    <tr><th class="p-3 text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-700/50 pl-4">City / Region</th><th id="titleArea" class="p-3 text-xs font-bold text-orange-400 uppercase tracking-wider border-b border-slate-700/50 text-right pr-4">Zone</th></tr>
+                                </thead>
+                                <tbody id="dataBodyArea" class="text-sm font-mono-code text-slate-400 divide-y divide-slate-800/50">
+                                    <tr><td colspan="2" class="p-8 text-center text-slate-600"><i class="fa-solid fa-inbox text-3xl mb-3 opacity-50"></i><br>Awaiting data pull...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==============================
+                     UNIVERSAL TERMINAL RESULT
+                     ============================== -->
+                <div id="resultBox" class="mt-8 hidden-element relative z-10 animate-[slideUp_0.4s_ease-out]">
+                    <div class="bg-[#0b1120] rounded-t-xl px-4 py-2.5 flex items-center border border-b-0 border-slate-700/50">
+                        <div class="flex gap-2 w-20"><div class="w-3 h-3 rounded-full bg-red-500/80"></div><div class="w-3 h-3 rounded-full bg-yellow-500/80"></div><div class="w-3 h-3 rounded-full bg-green-500/80"></div></div>
+                        <div class="flex-1 text-center text-[11px] font-mono-code text-slate-500 tracking-widest">admin@barmods-datacenter:~#</div>
+                        <div class="w-20 text-right"><button onclick="copyResult()" class="text-xs bg-slate-800 hover:bg-slate-700 transition px-3 py-1 rounded border border-slate-700 text-slate-300 flex items-center gap-1.5 ml-auto"><i class="fa-regular fa-copy"></i> Copy</button></div>
+                    </div>
+                    <div class="bg-[#020617] border border-slate-700/50 p-1 rounded-b-xl relative shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+                        <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-10 pointer-events-none opacity-20"></div>
+                        <pre id="outputText" class="p-5 text-[#00ff41] font-mono-code text-[13px] sm:text-sm overflow-x-auto whitespace-pre-wrap leading-relaxed relative z-20"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer class="mt-12 text-center text-xs text-slate-500 font-mono-code pb-8">
+                &copy; 2026 Barmods Tunnel Data Center. All rights reserved.
+            </footer>
         </div>
-    </div>
+    </main>
+
+    <!-- ==============================
+         BOTTOM NAVIGATION (Mobile)
+         ============================== -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-[#0b1121]/90 backdrop-blur-xl border-t border-slate-800 z-50 flex justify-around items-center px-2 py-3 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
+        <button onclick="switchTab('vpn', 'Deployment Center')" id="mob-nav-vpn" class="flex flex-col items-center gap-1 w-16 text-cyan-400 transition-all">
+            <i class="fa-solid fa-network-wired text-xl"></i><span class="text-[9px] font-bold tracking-wider uppercase">VPN</span>
+        </button>
+        <button onclick="switchTab('tools', 'IP Tracker & Radar')" id="mob-nav-tools" class="flex flex-col items-center gap-1 w-16 text-slate-500 hover:text-slate-300 transition-all">
+            <i class="fa-solid fa-satellite-dish text-xl"></i><span class="text-[9px] font-bold tracking-wider uppercase">Lookup</span>
+        </button>
+        <button onclick="switchTab('xl', 'XL & Axis Utilities')" id="mob-nav-xl" class="flex flex-col items-center gap-1 w-16 text-slate-500 hover:text-slate-300 transition-all">
+            <i class="fa-solid fa-sim-card text-xl"></i><span class="text-[9px] font-bold tracking-wider uppercase">Cellular</span>
+        </button>
+    </nav>
+
+    <!-- Keyframes for smooth UI -->
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 12px); }
+    </style>
 
     <script>
-        // Tab Management Logic
-        const btnTabVpn = document.getElementById('btnTabVpn');
-        const btnTabTools = document.getElementById('btnTabTools');
-        const sectionVpn = document.getElementById('sectionVpn');
-        const sectionTools = document.getElementById('sectionTools');
-        const resultBox = document.getElementById('resultBox');
-        const outputText = document.getElementById('outputText');
+        /* LIVE CLOCK */
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
+        }, 1000);
 
-        function switchTab(tab) {
-            resultBox.classList.add('hidden-element'); // Sembunyikan result saat ganti tab
-            if (tab === 'vpn') {
-                btnTabVpn.className = 'tab-btn tab-active w-1/2 py-3 rounded-lg font-bold text-sm tracking-wide flex justify-center items-center gap-2';
-                btnTabTools.className = 'tab-btn tab-inactive w-1/2 py-3 rounded-lg font-bold text-sm tracking-wide flex justify-center items-center gap-2';
-                sectionVpn.classList.remove('hidden-element');
-                sectionTools.classList.add('hidden-element');
-            } else {
-                btnTabTools.className = 'tab-btn tab-active w-1/2 py-3 rounded-lg font-bold text-sm tracking-wide flex justify-center items-center gap-2';
-                btnTabVpn.className = 'tab-btn tab-inactive w-1/2 py-3 rounded-lg font-bold text-sm tracking-wide flex justify-center items-center gap-2';
-                sectionTools.classList.remove('hidden-element');
-                sectionVpn.classList.add('hidden-element');
-            }
+        /* DASHBOARD TAB SWITCHER */
+        function switchTab(tab, title) {
+            document.getElementById('resultBox').classList.add('hidden-element');
+            if(title) document.getElementById('pageTitle').innerText = title;
+            
+            ['vpn', 'tools', 'xl'].forEach(t => {
+                // Desktop Nav
+                const nav = document.getElementById('nav-' + t);
+                // Mobile Nav
+                const mobNav = document.getElementById('mob-nav-' + t);
+                // Content Section
+                const sec = document.getElementById('section' + t.charAt(0).toUpperCase() + t.slice(1));
+                
+                if (t === tab) { 
+                    nav.className = 'nav-item nav-active w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm'; 
+                    mobNav.className = 'flex flex-col items-center gap-1 w-16 text-cyan-400 transition-all transform scale-110';
+                    sec.classList.remove('hidden-element'); 
+                } else { 
+                    nav.className = 'nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm'; 
+                    mobNav.className = 'flex flex-col items-center gap-1 w-16 text-slate-500 hover:text-slate-300 transition-all';
+                    sec.classList.add('hidden-element'); 
+                }
+            });
         }
 
-        // VPN Form Dynamic Fields Logic
-        const actionSel = document.getElementById('action');
-        const protocolSel = document.getElementById('protocol');
-        const passGroup = document.getElementById('passGroup');
-        const detailGroup = document.getElementById('detailGroup');
-        const quotaGroup = document.getElementById('quotaGroup');
+        /* XL SUB TABS */
+        function switchSubTab(subTab) {
+            document.getElementById('resultBox').classList.add('hidden-element');
+            const btnNomor = document.getElementById('btnSubTabNomor'); const btnArea = document.getElementById('btnSubTabArea');
+            const secNomor = document.getElementById('subSectionNomor'); const secArea = document.getElementById('subSectionArea');
+            if(subTab === 'nomor') { btnNomor.className = 'sub-tab-active flex-1 sm:w-28 py-1.5 rounded-md text-xs font-bold shadow-lg shadow-blue-500/20 transition-all'; btnArea.className = 'sub-tab-inactive flex-1 sm:w-28 py-1.5 rounded-md text-xs font-bold transition-all'; secNomor.classList.remove('hidden-element'); secArea.classList.add('hidden-element'); } 
+            else { btnArea.className = 'sub-tab-active flex-1 sm:w-28 py-1.5 rounded-md text-xs font-bold shadow-lg shadow-blue-500/20 transition-all'; btnNomor.className = 'sub-tab-inactive flex-1 sm:w-28 py-1.5 rounded-md text-xs font-bold transition-all'; secArea.classList.remove('hidden-element'); secNomor.classList.add('hidden-element'); }
+        }
 
+        /* VPN DYNAMIC FORM */
+        const actionSel = document.getElementById('action'); const protocolSel = document.getElementById('protocol');
+        const passGroup = document.getElementById('passGroup'); const detailGroup = document.getElementById('detailGroup'); const quotaGroup = document.getElementById('quotaGroup');
         const updateFormVisibility = () => {
-            const action = actionSel.value;
-            const protocol = protocolSel.value;
-
-            if (action === 'delete') {
-                detailGroup.classList.add('hidden-element');
-                passGroup.classList.add('hidden-element');
-            } else {
-                detailGroup.classList.remove('hidden-element');
-                if (protocol === 'ssh' && action !== 'renew') {
-                    passGroup.classList.remove('hidden-element');
-                } else {
-                    passGroup.classList.add('hidden-element');
-                }
-                if (protocol === 'ssh') {
-                    quotaGroup.classList.add('hidden-element');
-                } else {
-                    quotaGroup.classList.remove('hidden-element');
-                }
-            }
+            const action = actionSel.value; const protocol = protocolSel.value;
+            if (action === 'delete') { detailGroup.classList.add('hidden-element'); passGroup.classList.add('hidden-element'); } 
+            else { detailGroup.classList.remove('hidden-element'); if (protocol === 'ssh' && action !== 'renew') passGroup.classList.remove('hidden-element'); else passGroup.classList.add('hidden-element'); if (protocol === 'ssh') quotaGroup.classList.add('hidden-element'); else quotaGroup.classList.remove('hidden-element'); }
         };
+        actionSel.addEventListener('change', updateFormVisibility); protocolSel.addEventListener('change', updateFormVisibility); updateFormVisibility(); 
 
-        actionSel.addEventListener('change', updateFormVisibility);
-        protocolSel.addEventListener('change', updateFormVisibility);
-        updateFormVisibility(); 
-
-        // ==========================================
-        // HANDLER 1: SUBMIT VPN FORM
-        // ==========================================
+        /* FORM SUBMITS */
         document.getElementById('vpnForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmitVpn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DEPLOYING...';
-            btn.classList.add('opacity-75', 'cursor-wait');
-            resultBox.classList.add('hidden-element');
-
-            const payload = {
-                action: actionSel.value,
-                protocol: protocolSel.value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
-                exp: document.getElementById('exp').value,
-                quota: document.getElementById('quota').value,
-                iplimit: document.getElementById('iplimit').value
-            };
-
+            e.preventDefault(); const btn = document.getElementById('btnSubmitVpn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> EXECUTING...'; btn.classList.add('opacity-75', 'cursor-wait'); document.getElementById('resultBox').classList.add('hidden-element');
+            const payload = { action: actionSel.value, protocol: protocolSel.value, username: document.getElementById('username').value, password: document.getElementById('password').value, exp: document.getElementById('exp').value, quota: document.getElementById('quota').value, iplimit: document.getElementById('iplimit').value };
             try {
-                // Menembak ke backend Vercel (api/vpn.js)
-                const response = await fetch('/api/vpn', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                const resData = await response.json();
-                resultBox.classList.remove('hidden-element');
-                
-                if (resData.status === 'success') {
-                    outputText.classList.replace('text-red-500', 'text-[#00ff41]');
-                    outputText.innerText = formatVpnOutput(payload.action, payload.protocol, resData.data || resData);
-                } else {
-                    outputText.classList.replace('text-[#00ff41]', 'text-red-500');
-                    outputText.innerText = "[!] SYSTEM ERROR:\n" + (resData.message || JSON.stringify(resData));
-                }
-            } catch (err) {
-                resultBox.classList.remove('hidden-element');
-                outputText.classList.replace('text-[#00ff41]', 'text-red-500');
-                outputText.innerText = "[!] CONNECTION LOST TO SERVER:\n" + err.message;
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-bolt"></i> EXECUTE DEPLOYMENT';
-                btn.classList.remove('opacity-75', 'cursor-wait');
-                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const resData = await response.json(); document.getElementById('resultBox').classList.remove('hidden-element');
+                if (resData.status === 'success') { document.getElementById('outputText').classList.replace('text-red-500', 'text-[#00ff41]'); document.getElementById('outputText').innerText = formatVpnOutput(payload.action, payload.protocol, resData.data || resData); } 
+                else { document.getElementById('outputText').classList.replace('text-[#00ff41]', 'text-red-500'); document.getElementById('outputText').innerText = "[!] SYSTEM ERROR:\n" + (resData.message || JSON.stringify(resData)); }
+            } catch (err) { document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').classList.replace('text-[#00ff41]', 'text-red-500'); document.getElementById('outputText').innerText = "[!] CONNECTION LOST:\n" + err.message;
+            } finally { btn.innerHTML = '<i class="fa-solid fa-bolt"></i> EXECUTE DEPLOYMENT'; btn.classList.remove('opacity-75', 'cursor-wait'); document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         });
 
-        // ==========================================
-        // HANDLER 2: SUBMIT IP LOOKUP FORM
-        // ==========================================
         document.getElementById('toolsForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmitTools');
-            const targetIp = document.getElementById('ipTarget').value.trim();
-            
-            btn.innerHTML = '<i class="fa-solid fa-radar fa-spin"></i> TRACKING IP...';
-            btn.classList.add('opacity-75', 'cursor-wait');
-            resultBox.classList.add('hidden-element');
-
+            e.preventDefault(); const btn = document.getElementById('btnSubmitTools'); const targetIp = document.getElementById('ipTarget').value.trim();
+            btn.innerHTML = '<i class="fa-solid fa-radar fa-spin"></i> TRACKING IP...'; btn.classList.add('opacity-75', 'cursor-wait'); document.getElementById('resultBox').classList.add('hidden-element');
             try {
-                // Track IP Menggunakan API Publik Gratis
-                const response = await fetch(`https://ipwho.is/${targetIp}`);
-                const data = await response.json();
-                
-                resultBox.classList.remove('hidden-element');
-
-                if (data.success) {
-                    outputText.classList.replace('text-red-500', 'text-[#00ff41]');
-                    outputText.innerText = `[+] TARGET ACQUIRED: ${data.ip}\n==========================================\n> NETWORK INFORMATION\n  ISP       : ${data.connection.isp}\n  ASN       : ${data.connection.asn}\n  Org       : ${data.connection.org}\n  Type      : ${data.type}\n\n> LOCATION DATA\n  Country   : ${data.country} (${data.country_code}) \n  Region    : ${data.region}\n  City      : ${data.city}\n  ZIP/Post  : ${data.postal}\n  Timezone  : ${data.timezone.id} (UTC ${data.timezone.utc})\n\n> GEO-COORDINATES\n  Latitude  : ${data.latitude}\n  Longitude : ${data.longitude}\n  Maps Link : https://www.google.com/maps?q=${data.latitude},${data.longitude}\n==========================================\n[OK] TRACKING COMPLETED.`;
-                } else {
-                    outputText.classList.replace('text-[#00ff41]', 'text-red-500');
-                    outputText.innerText = `[!] TRACKING FAILED:\nInvalid IP or Domain (${data.message})`;
-                }
-            } catch (err) {
-                resultBox.classList.remove('hidden-element');
-                outputText.classList.replace('text-[#00ff41]', 'text-red-500');
-                outputText.innerText = "[!] TRACKING ERROR:\nNetwork connection blocked or API down.";
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-radar"></i> START TRACKING';
-                btn.classList.remove('opacity-75', 'cursor-wait');
-                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+                const response = await fetch(`https://ipwho.is/${targetIp}`); const data = await response.json(); document.getElementById('resultBox').classList.remove('hidden-element');
+                if (data.success) { document.getElementById('outputText').classList.replace('text-red-500', 'text-[#00ff41]'); document.getElementById('outputText').innerText = `[+] TARGET ACQUIRED: ${data.ip}\n==========================================\n> NETWORK INFORMATION\n  ISP       : ${data.connection.isp}\n  ASN       : ${data.connection.asn}\n  Org       : ${data.connection.org}\n  Type      : ${data.type}\n\n> LOCATION DATA\n  Country   : ${data.country} (${data.country_code}) \n  Region    : ${data.region}\n  City      : ${data.city}\n  ZIP/Post  : ${data.postal}\n  Timezone  : ${data.timezone.id} (UTC ${data.timezone.utc})\n==========================================\n[OK] TRACKING COMPLETED.`; } 
+                else { document.getElementById('outputText').classList.replace('text-[#00ff41]', 'text-red-500'); document.getElementById('outputText').innerText = `[!] TRACKING FAILED:\nInvalid IP/Domain (${data.message})`; }
+            } catch (err) { document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').classList.replace('text-[#00ff41]', 'text-red-500'); document.getElementById('outputText').innerText = "[!] TRACKING ERROR:\nNetwork connection blocked.";
+            } finally { btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> START TRACKING'; btn.classList.remove('opacity-75', 'cursor-wait'); document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         });
 
-        // Formatter untuk output VPN
-        function formatVpnOutput(action, protocol, data) {
-            if (action === 'delete') return `[OK] SUCCESS: Akun ${data.username || ''} telah dihapus dari database.`;
-            if (action === 'renew') return `[OK] RENEW SUCCESS:\n==========================================\n  Username  : ${data.username || ''}\n  Exp. Baru : ${data.expired || ''}\n==========================================`;
-            
-            let text = `==========================================\n       [ NEW ${protocol.toUpperCase()} ACCOUNT ]\n==========================================\n`;
-            for (const [key, value] of Object.entries(data)) {
-                let padKey = key.toUpperCase().replace('_', ' ').padEnd(14, ' ');
-                text += `> ${padKey} : ${value}\n`;
+        /* REAL API XL FUNCTIONS */
+        async function showLoadingTerminal(text) {
+            document.getElementById('resultBox').classList.remove('hidden-element');
+            document.getElementById('outputText').classList.replace('text-red-500', 'text-yellow-400'); document.getElementById('outputText').classList.replace('text-[#00ff41]', 'text-yellow-400');
+            document.getElementById('outputText').innerText = `[~] ${text}...\nBypassing to Cellular Server, please wait.`;
+            document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function printJson(obj, indent = "") {
+            let text = "";
+            for (const [key, value] of Object.entries(obj)) {
+                if (typeof value === 'object' && value !== null) { text += `${indent}> ${key.toUpperCase()}:\n` + printJson(value, indent + "  "); } 
+                else { let padKey = key.toUpperCase().replace(/_/g, ' ').padEnd(14, ' '); text += `${indent}> ${padKey} : ${value}\n`; }
             }
-            text += `==========================================\nSTATUS: ONLINE & SECURED.`;
             return text;
         }
 
-        // Fitur Copy
+        async function prosesXl(tipe) {
+            const noTarget = document.getElementById('msisdnXl').value.trim();
+            if(!noTarget) return alert("Silakan masukkan nomor XL/Axis!");
+            await showLoadingTerminal(tipe === 'kuota' ? `Mengecek Kuota untuk ${noTarget}` : `Mengecek Circle untuk ${noTarget}`);
+            try {
+                const payload = { action: tipe === 'kuota' ? 'xl_kuota' : 'xl_circle', username: noTarget };
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await response.json();
+                document.getElementById('outputText').classList.replace('text-yellow-400', 'text-[#00ff41]');
+                let output = `==========================================\n[+] HASIL PENGECEKAN XL/AXIS\n==========================================\n`;
+                if (data.status === false || data.status === "error" || data.error) { output = `[!] PROSES DITOLAK:\n${data.message || data.error || 'Nomor tidak valid / API maintenance.'}`; document.getElementById('outputText').classList.replace('text-[#00ff41]', 'text-red-500'); } 
+                else { output += printJson(data); output += `==========================================\n[OK] OPERATION SUCCESS.`; }
+                document.getElementById('outputText').innerText = output;
+            } catch(e) { document.getElementById('outputText').classList.replace('text-yellow-400', 'text-red-500'); document.getElementById('outputText').innerText = `[!] GAGAL MENGAMBIL DATA:\nKoneksi terputus atau Server API Down.`; }
+        }
+
+        async function prosesArea(tipe) {
+            document.getElementById('titleArea').innerText = tipe === 'akrab' ? "AREA AKRAB" : "BEBAS PUAS";
+            const tbody = document.getElementById('dataBodyArea');
+            tbody.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-yellow-400"><i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3"></i><br>Sinkronisasi Data Area...</td></tr>`;
+            try {
+                const payload = { action: tipe === 'akrab' ? 'xl_akrab' : 'xl_bepu' };
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const data = await response.json();
+                let dataArray = Array.isArray(data) ? data : (data.data || data.result || []);
+                if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-slate-500">Data Area Kosong / API Maintenance.</td></tr>`; return; }
+                tbody.innerHTML = "";
+                dataArray.forEach(item => {
+                    let keys = Object.keys(item); let kota = item[keys[0]] || "-"; let area = item[keys[1]] || "-";
+                    tbody.innerHTML += `<tr class="hover:bg-slate-800/80 transition"><td class="p-3 pl-4 border-b border-slate-700/30 text-slate-300 font-bold">${kota}</td><td class="p-3 pr-4 border-b border-slate-700/30 text-orange-400 text-right">${area}</td></tr>`;
+                });
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-red-500">Gagal memuat data Area dari server pusat.</td></tr>`; }
+        }
+
+        function filterTable() {
+            let input = document.getElementById("searchAreaInput"); let filter = input.value.toUpperCase(); let table = document.getElementById("tableArea"); let tr = table.getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName("td")[0];
+                if (td) { let txtValue = td.textContent || td.innerText; if (txtValue.toUpperCase().indexOf(filter) > -1) { tr[i].style.display = ""; } else { tr[i].style.display = "none"; } }       
+            }
+        }
+
+        /* FORMATTERS */
+        function formatVpnOutput(action, protocol, data) {
+            if (action === 'delete') return `[OK] SUCCESS: Akun ${data.username || ''} telah dihapus dari database.`;
+            if (action === 'renew') return `[OK] RENEW SUCCESS:\n==========================================\n  Username  : ${data.username || ''}\n  Exp. Baru : ${data.expired || ''}\n==========================================`;
+            let text = `==========================================\n       [ NEW ${protocol.toUpperCase()} ACCOUNT ]\n==========================================\n`;
+            for (const [key, value] of Object.entries(data)) { let padKey = key.toUpperCase().replace('_', ' ').padEnd(14, ' '); text += `> ${padKey} : ${value}\n`; }
+            text += `==========================================\nSTATUS: ONLINE & SECURED.`; return text;
+        }
+
         function copyResult() {
-            navigator.clipboard.writeText(outputText.innerText);
-            const btn = document.querySelector('#resultBox button');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i> Copied';
-            btn.classList.replace('text-slate-300', 'text-green-400');
-            setTimeout(() => { 
-                btn.innerHTML = originalHTML; 
-                btn.classList.replace('text-green-400', 'text-slate-300');
-            }, 2000);
+            navigator.clipboard.writeText(document.getElementById('outputText').innerText);
+            const btn = document.querySelector('#resultBox button'); const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i> Copied'; btn.classList.replace('text-slate-300', 'text-green-400');
+            setTimeout(() => { btn.innerHTML = originalHTML; btn.classList.replace('text-green-400', 'text-slate-300'); }, 2000);
         }
     </script>
 </body>
