@@ -11,10 +11,11 @@ module.exports = async (req, res) => {
     const domain = process.env.VPS_DOMAIN;
     const auth = process.env.VPS_AUTH;
     const adminPin = process.env.ADMIN_PIN; 
-    const groqKey = process.env.GROQ_API_KEY; // <-- API KEY GROQ BARU
+    const groqKey = process.env.GROQ_API_KEY; 
+    const btcKey = process.env.BOTCAHX_APIKEY; // <-- API KEY BOTCAHX MAS
 
     // =======================================================
-    // FITUR 1: REAL-TIME SERVER MONITORING (VPS SENSOR) 📊
+    // FITUR 1: REAL-TIME SERVER MONITORING (VPS SENSOR)
     // =======================================================
     if (action === 'server_stats') {
         try {
@@ -28,35 +29,39 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: CORE AI BARMODS ASSISTANT (POWERED BY GROQ) 🚀
+    // FITUR 2: SOSMED DOWNLOADER (TIKTOK/IG/DLL) 📥
+    // =======================================================
+    if (action === 'tiktok') {
+        if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN DI VERCEL!" });
+        if (!username) return res.status(400).json({ status: "error", message: "URL tidak boleh kosong!" });
+        
+        try {
+            // URL target kita tumpang lewat variabel 'username' dari form HTML
+            const apiUrl = `https://api.botcahx.eu.org/api/dowloader/tiktok?url=${encodeURIComponent(username)}&apikey=${btcKey}`;
+            let response = await axios.get(apiUrl, { timeout: 20000 });
+            
+            if (!response.data || response.data.status === false) {
+                return res.status(400).json({ status: "error", message: response.data?.message || "Gagal mengambil data dari Server Botcahx." });
+            }
+            return res.status(200).json({ status: "success", data: response.data.result });
+        } catch (error) {
+            return res.status(500).json({ status: "error", message: "Koneksi ke API Botcahx Gagal/Timeout." });
+        }
+    }
+
+    // =======================================================
+    // FITUR 3: CORE AI BARMODS ASSISTANT (POWERED BY GROQ)
     // =======================================================
     if (action === 'ai_chat') {
-        if (!groqKey) {
-            return res.status(200).json({ status: "success", reply: "⚠️ **SISTEM MENGALAMI KENDALA** ⚠️\nBos, API Key Groq belum dipasang di Vercel (.env). Silakan tambahkan variabel `GROQ_API_KEY` agar saya bisa beroperasi maksimal!" });
-        }
-
+        if (!groqKey) return res.status(200).json({ status: "success", reply: "Bos, API Key Groq belum dipasang di Vercel (.env)." });
         try {
             const systemPrompt = "Kamu adalah AI Barmods, asisten pintar berbasis kecerdasan buatan untuk Barmods Tunnel VIP Data Center. Jawab dengan keren, ramah, logis, ringkas dan pro.";
-            
             const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-                // 👇 MENGGUNAKAN MODEL LLAMA 3.1 TERBARU DARI GROQ 👇
                 model: "llama-3.1-8b-instant", 
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: username } 
-                ],
+                messages: [ { role: "system", content: systemPrompt }, { role: "user", content: username } ],
                 temperature: 0.7
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${groqKey}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 15000
-            });
-
-            const aiReply = response.data.choices[0].message.content;
-            return res.status(200).json({ status: "success", reply: aiReply });
-            
+            }, { headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' }, timeout: 15000 });
+            return res.status(200).json({ status: "success", reply: response.data.choices[0].message.content });
         } catch (error) {
             let errorMsg = error.response ? error.response.data.error.message : error.message;
             return res.status(500).json({ status: "error", message: `Koneksi ke Server Groq Gagal: ${errorMsg}` });
@@ -64,33 +69,22 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 3: PROXY TOOLS XL & AXIS (API HASIL HACKING VIP) 🕵️‍♂️
+    // FITUR 4: PROXY TOOLS XL & AXIS
     // =======================================================
     if (action && action.startsWith('xl_')) {
         try {
             let url = '';
-            
-            if (action === 'xl_kuota' || action === 'xl_circle') {
-                url = `https://xl-ku.my.id/check/all-info/${username}`;
-            }
-            else if (action === 'xl_akrab') {
-                url = `https://xl-ku.my.id/check/area-akrab`; 
-            }
-            else if (action === 'xl_bepu') {
-                url = `https://xl-ku.my.id/check/area-bepu`;
-            }
+            if (action === 'xl_kuota' || action === 'xl_circle') url = `https://xl-ku.my.id/check/all-info/${username}`;
+            else if (action === 'xl_akrab') url = `https://xl-ku.my.id/check/area-akrab`; 
+            else if (action === 'xl_bepu') url = `https://xl-ku.my.id/check/area-bepu`;
 
             let response = await axios.get(url, { 
-                validateStatus: () => true, 
-                timeout: 15000,
+                validateStatus: () => true, timeout: 15000,
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36',
-                    'Accept': 'application/json',
-                    'Referer': 'https://xl-ku.my.id/',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K)', 'Accept': 'application/json', 'Referer': 'https://xl-ku.my.id/',
                     'Xl-Cd10e88edb': 'wwBPZDHZca7_-3OPhO1KYvr27lNMFHAQexl5kbv6lQgVqpsLtMTBrXW8z-vWiPM_HzbTwdqO1DbXZj8DjMzqbWFMKvluyIKUT2pOr-12K5zRrHTsCW_MpZk9-4EoRRij99vIn-5_h_QjRxxUnu_v06RyV69HvPnZ35bH1h3IttNqYiaBQ'
                 }
             });
-            
             return res.status(200).json(response.data);
         } catch (error) {
             return res.status(500).json({ status: false, message: "Server API XL sedang Down atau diblokir." });
@@ -98,41 +92,29 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 4: VPN PANEL DEPLOYMENT (KHUSUS DEVELOPER)
+    // FITUR 5: VPN PANEL DEPLOYMENT
     // =======================================================
     if (!domain || !auth) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (VPS_DOMAIN/AUTH) belum disetting!" });
-    
     if (!adminPin) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (ADMIN_PIN) belum dibuat di Vercel!" });
-    if (dev_pin !== adminPin) {
-        return res.status(403).json({ status: "error", message: "AKSES DITOLAK! Developer PIN salah. Anda tidak memiliki izin membuat/menghapus VPN." });
-    }
-
+    if (dev_pin !== adminPin) return res.status(403).json({ status: "error", message: "AKSES DITOLAK! Developer PIN salah." });
     if (!action || !protocol || !username) return res.status(400).json({ status: "error", message: "Data form tidak lengkap!" });
 
-    let url = '';
-    let endpoint = '';
-
+    let url = ''; let endpoint = '';
     try {
         if (action === 'create' || action === 'trial') {
             endpoint = `${action}${protocol}`; 
             if (protocol === 'ssh') url = `http://${domain}:5888/${endpoint}?user=${username}&password=${password}&exp=${exp}&iplimit=${iplimit}&auth=${auth}`;
             else url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&quota=${quota}&iplimit=${iplimit}&auth=${auth}`;
-        } 
-        else if (action === 'renew') {
+        } else if (action === 'renew') {
             endpoint = `renew${protocol}`;
             if (protocol === 'ssh') url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&iplimit=${iplimit}&auth=${auth}`;
             else url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&quota=${quota}&iplimit=${iplimit}&auth=${auth}`;
-        } 
-        else if (action === 'delete') {
-            endpoint = `del${protocol}`;
-            url = `http://${domain}:5888/${endpoint}?user=${username}&auth=${auth}`;
+        } else if (action === 'delete') {
+            endpoint = `del${protocol}`; url = `http://${domain}:5888/${endpoint}?user=${username}&auth=${auth}`;
         }
 
         let response = await axios.get(url, { validateStatus: () => true, timeout: 15000 });
-        if (action === 'delete' && response.status === 404) {
-             let fallbackUrl = `http://${domain}:5888/delete${protocol}?user=${username}&auth=${auth}`;
-             response = await axios.get(fallbackUrl, { validateStatus: () => true, timeout: 15000 });
-        }
+        if (action === 'delete' && response.status === 404) response = await axios.get(`http://${domain}:5888/delete${protocol}?user=${username}&auth=${auth}`, { validateStatus: () => true, timeout: 15000 });
         return res.status(200).json(response.data);
     } catch (error) {
         return res.status(500).json({ status: "error", message: `Server Down: ${error.message}` });
