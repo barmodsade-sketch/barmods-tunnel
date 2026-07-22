@@ -56,12 +56,14 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 3: TO-FIGURE AI
+    // FITUR 3: AI IMAGE STUDIO (TO-FIGURE 3D & REMINI HD) 🖼️✨
     // =======================================================
-    if (action === 'tofigure') {
+    if (action === 'tofigure' || action === 'remini') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN!" });
         try {
             let targetUrl = req.body.imageUrl; const imageBase64 = req.body.imageBase64; const version = req.body.version || 'v1';
+            
+            // Auto Bypass Uploader
             if (imageBase64) {
                 const buffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
                 const boundary = '----BarmodsFormBoundaryVIP';
@@ -81,7 +83,14 @@ module.exports = async (req, res) => {
             }
             if (!targetUrl) return res.status(400).json({ status: "error", message: "Foto / URL tidak valid!" });
 
-            let endpoint = version === 'v2' ? '/api/maker/tofigure-v2' : version === 'v3' ? '/api/maker/tofigure-v3' : '/api/maker/tofigure';
+            // Routing Endpoint berdasarkan jenis AI
+            let endpoint = '';
+            if (action === 'remini') {
+                endpoint = '/api/tools/remini';
+            } else {
+                endpoint = version === 'v2' ? '/api/maker/tofigure-v2' : version === 'v3' ? '/api/maker/tofigure-v3' : '/api/maker/tofigure';
+            }
+
             const apiUrl = `https://api.botcahx.eu.org${endpoint}?url=${encodeURIComponent(targetUrl)}&apikey=${btcKey}`;
             
             let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 60000, validateStatus: () => true });
@@ -91,7 +100,8 @@ module.exports = async (req, res) => {
                 const textResponse = Buffer.from(btcRes.data).toString('utf-8'); let jsonResponse;
                 try { jsonResponse = JSON.parse(textResponse); } catch(e) { return res.status(400).json({ status: "error", message: `Server API Botcahx Down: ${textResponse.substring(0, 50)}` }); }
                 if (jsonResponse.status && jsonResponse.result) {
-                    let finalUrl = jsonResponse.result.url || jsonResponse.result; let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
+                    let finalUrl = jsonResponse.result.url || jsonResponse.result;
+                    let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
                     return res.status(200).json({ status: "success", data: `data:${imgDownload.headers['content-type']};base64,${Buffer.from(imgDownload.data).toString('base64')}` });
                 }
                 return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Ditolak API Botcahx. Pastikan ada wajah di foto!" });
@@ -111,22 +121,16 @@ module.exports = async (req, res) => {
             const device = req.body.device || 'desktop';
             const width = device === 'desktop' ? 1920 : 390;
             const height = device === 'desktop' ? 1080 : 844;
-
             const apiUrl = `https://api.botcahx.eu.org/api/tools/ssweb?url=${encodeURIComponent(targetUrl)}&device=${device}&width=${width}&height=${height}&apikey=${btcKey}`;
-            
             let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 35000, validateStatus: () => true });
             const contentType = btcRes.headers['content-type'] || '';
-            
             if (!contentType.includes('image')) {
                 const textResponse = Buffer.from(btcRes.data).toString('utf-8');
-                return res.status(400).json({ status: "error", message: `SSWeb Gagal. Web target mungkin down/memblokir bot. Balasan: ${textResponse.substring(0, 50)}...` });
+                return res.status(400).json({ status: "error", message: `SSWeb Gagal. Web target mungkin down. Balasan: ${textResponse.substring(0, 50)}...` });
             }
-
             const finalBase64 = Buffer.from(btcRes.data).toString('base64');
             return res.status(200).json({ status: "success", data: `data:${contentType};base64,${finalBase64}`, device, url: targetUrl });
-        } catch (error) {
-            return res.status(500).json({ status: "error", message: `SSWeb Error: ${error.message}` });
-        }
+        } catch (error) { return res.status(500).json({ status: "error", message: `SSWeb Error: ${error.message}` }); }
     }
 
     // =======================================================
