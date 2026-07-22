@@ -28,17 +28,15 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: PROXY TOOLS XL & AXIS (API HASIL HACK / SNIFFING) 🕵️‍♂️
+    // FITUR 2: PROXY TOOLS XL & AXIS (API HASIL HACKING VIP) 🕵️‍♂️🔥
     // =======================================================
     if (action && action.startsWith('xl_')) {
         try {
             let url = '';
             
-            // Menggunakan API Asli hasil Sniffing Mas:
             if (action === 'xl_kuota' || action === 'xl_circle') {
                 url = `https://xl-ku.my.id/check/all-info/${username}`;
             }
-            // Untuk cek area, kita tebak struktur barunya (jika salah, nanti kita sniffing lagi area-nya)
             else if (action === 'xl_akrab') {
                 url = `https://xl-ku.my.id/check/area-akrab`; 
             }
@@ -46,14 +44,17 @@ module.exports = async (req, res) => {
                 url = `https://xl-ku.my.id/check/area-bepu`;
             }
 
-            // Headers rahasia agar dikira berasal dari web aslinya (Bypass Anti-Bot)
+            // MENGIRIM KUNCI RAHASIA (BYPASS 401)
             let response = await axios.get(url, { 
                 validateStatus: () => true, 
                 timeout: 15000,
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36',
                     'Accept': 'application/json',
-                    'Referer': 'https://xl-ku.my.id/'
+                    'Referer': 'https://xl-ku.my.id/',
+                    
+                    // 👇 BINGO! INI KUNCI RAHASIA YANG MAS TEMUKAN 👇
+                    'Xl-Cd10e88edb': 'wwBPZDHZca7_-3OPhO1KYvr27lNMFHAQexl5kbv6lQgVqpsLtMTBrXW8z-vWiPM_HzbTwdqO1DbXZj8DjMzqbWFMKvluyIKUT2pOr-12K5zRrHTsCW_MpZk9-4EoRRij99vIn-5_h_QjRxxUnu_v06RyV69HvPnZ35bH1h3IttNqYiaBQ'
                 }
             });
             
@@ -68,7 +69,6 @@ module.exports = async (req, res) => {
     // =======================================================
     if (!domain || !auth) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (VPS_DOMAIN/AUTH) belum disetting!" });
     
-    // PROTEKSI: Cek PIN Rahasia Developer
     if (!adminPin) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env (ADMIN_PIN) belum dibuat di Vercel!" });
     if (dev_pin !== adminPin) {
         return res.status(403).json({ status: "error", message: "AKSES DITOLAK! Developer PIN salah. Anda tidak memiliki izin membuat/menghapus VPN." });
