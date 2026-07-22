@@ -39,10 +39,11 @@ module.exports = async (req, res) => {
             const systemPrompt = "Kamu adalah AI Barmods, asisten pintar berbasis kecerdasan buatan untuk Barmods Tunnel VIP Data Center. Jawab dengan keren, ramah, logis, ringkas dan pro.";
             
             const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-                model: "llama3-8b-8192", // Model super cepat dari Meta
+                // 👇 MENGGUNAKAN MODEL LLAMA 3.1 TERBARU DARI GROQ 👇
+                model: "llama-3.1-8b-instant", 
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: username } // username berisi pertanyaan dari input user di HTML
+                    { role: "user", content: username } 
                 ],
                 temperature: 0.7
             }, {
