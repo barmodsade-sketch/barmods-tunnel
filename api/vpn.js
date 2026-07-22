@@ -24,74 +24,34 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 2: MULTI-CLOUD UPLOADER (YUPRA, CATBOX, DLL) 🚀
+    // FITUR 2: MULTI-CLOUD UPLOADER 🚀
     // =======================================================
     if (action === 'tourl') {
         try {
             const { fileBase64, fileName, mimeType } = req.body;
             if (!fileBase64) return res.status(400).json({ status: "error", message: "File kosong!" });
-
-            // Hapus prefix Base64 dan jadikan Buffer
             const buffer = Buffer.from(fileBase64.replace(/^data:.*?;base64,/, ""), 'base64');
-            
-            // Batas Serverless Vercel (Sekitar 4.5MB)
             if (buffer.length > 4 * 1024 * 1024) return res.status(400).json({ status: "error", message: "Ukuran file melebihi batas (Maksimal 4 MB)!" });
 
             const REAL_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
             const randomHex = crypto.randomBytes(5).toString("hex");
-
-            // Fungsi perakit Form-Data Manual (Bypass module form-data)
             const buildMultipart = (fields, fileField, fName) => {
-                const boundary = '----BarmodsFormBoundary' + randomHex;
-                let data = [];
-                for (let [key, value] of Object.entries(fields)) {
-                    data.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`));
-                }
-                data.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${fileField}"; filename="${fName}"\r\nContent-Type: ${mimeType}\r\n\r\n`));
-                data.push(buffer);
-                data.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+                const boundary = '----BarmodsFormBoundary' + randomHex; let data = [];
+                for (let [key, value] of Object.entries(fields)) { data.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`)); }
+                data.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${fileField}"; filename="${fName}"\r\nContent-Type: ${mimeType}\r\n\r\n`)); data.push(buffer); data.push(Buffer.from(`\r\n--${boundary}--\r\n`));
                 return { payload: Buffer.concat(data), headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'User-Agent': REAL_UA } };
             };
 
-            const uploadYupra = async () => {
-                let form = buildMultipart({}, 'files', fileName);
-                let { data } = await axios.post('https://cdn.yupra.my.id/upload', form.payload, { headers: form.headers, timeout: 15000 });
-                if (!data.success) throw new Error(); return `https://cdn.yupra.my.id${data.files[0].url}`;
-            };
-            const uploadCatbox = async () => {
-                let form = buildMultipart({ reqtype: 'fileupload' }, 'fileToUpload', fileName);
-                let { data } = await axios.post('https://catbox.moe/user/api.php', form.payload, { headers: form.headers, timeout: 15000 });
-                return data;
-            };
-            const uploadQuax = async () => {
-                let form = buildMultipart({ expiry: '-1' }, 'files[]', fileName);
-                let { data } = await axios.post('https://qu.ax/upload.php', form.payload, { headers: form.headers, timeout: 15000 });
-                return data.files[0].url;
-            };
-            const uploadPomf2 = async () => {
-                let form = buildMultipart({}, 'files[]', `${randomHex}_${fileName}`);
-                let { data } = await axios.post('https://pomf2.lain.la/upload.php', form.payload, { headers: form.headers, timeout: 15000 });
-                return data.files[0].url;
-            };
-            const uploadGoFile = async () => {
-                let form = buildMultipart({}, 'file', fileName);
-                let { data } = await axios.post('https://upload.gofile.io/uploadFile', form.payload, { headers: form.headers, timeout: 15000 });
-                return `https://${data.data.servers[0]}.gofile.io/download/web/${data.data.parentFolder}/${data.data.name}`;
-            };
-            const uploadFadzzz = async () => {
-                let form = buildMultipart({}, 'file', fileName);
-                let { data } = await axios.post('https://fadzzzcloud.my.id/upload', form.payload, { headers: form.headers, timeout: 15000 });
-                return data.url;
-            };
+            const uploadYupra = async () => { let form = buildMultipart({}, 'files', fileName); let { data } = await axios.post('https://cdn.yupra.my.id/upload', form.payload, { headers: form.headers, timeout: 15000 }); if (!data.success) throw new Error(); return `https://cdn.yupra.my.id${data.files[0].url}`; };
+            const uploadCatbox = async () => { let form = buildMultipart({ reqtype: 'fileupload' }, 'fileToUpload', fileName); let { data } = await axios.post('https://catbox.moe/user/api.php', form.payload, { headers: form.headers, timeout: 15000 }); return data; };
+            const uploadQuax = async () => { let form = buildMultipart({ expiry: '-1' }, 'files[]', fileName); let { data } = await axios.post('https://qu.ax/upload.php', form.payload, { headers: form.headers, timeout: 15000 }); return data.files[0].url; };
+            const uploadPomf2 = async () => { let form = buildMultipart({}, 'files[]', `${randomHex}_${fileName}`); let { data } = await axios.post('https://pomf2.lain.la/upload.php', form.payload, { headers: form.headers, timeout: 15000 }); return data.files[0].url; };
+            const uploadGoFile = async () => { let form = buildMultipart({}, 'file', fileName); let { data } = await axios.post('https://upload.gofile.io/uploadFile', form.payload, { headers: form.headers, timeout: 15000 }); return `https://${data.data.servers[0]}.gofile.io/download/web/${data.data.parentFolder}/${data.data.name}`; };
+            const uploadFadzzz = async () => { let form = buildMultipart({}, 'file', fileName); let { data } = await axios.post('https://fadzzzcloud.my.id/upload', form.payload, { headers: form.headers, timeout: 15000 }); return data.url; };
 
-            // Tembak ke 6 Server Bersamaan!
-            const results = await Promise.allSettled([
-                uploadYupra(), uploadCatbox(), uploadQuax(), uploadPomf2(), uploadGoFile(), uploadFadzzz()
-            ]);
-
+            const results = await Promise.allSettled([ uploadYupra(), uploadCatbox(), uploadQuax(), uploadPomf2(), uploadGoFile(), uploadFadzzz() ]);
             const finalData = results.map(r => ({ status: r.status === 'fulfilled' ? 'success' : 'failed', url: r.status === 'fulfilled' ? r.value : null }));
             return res.status(200).json({ status: "success", data: finalData });
-
         } catch (error) { return res.status(500).json({ status: "error", message: `Uploader Gagal: ${error.message}` }); }
     }
 
@@ -131,8 +91,7 @@ module.exports = async (req, res) => {
                 const textResponse = Buffer.from(btcRes.data).toString('utf-8'); let jsonResponse;
                 try { jsonResponse = JSON.parse(textResponse); } catch(e) { return res.status(400).json({ status: "error", message: `Server API Botcahx Down: ${textResponse.substring(0, 50)}` }); }
                 if (jsonResponse.status && jsonResponse.result) {
-                    let finalUrl = jsonResponse.result.url || jsonResponse.result;
-                    let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
+                    let finalUrl = jsonResponse.result.url || jsonResponse.result; let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
                     return res.status(200).json({ status: "success", data: `data:${imgDownload.headers['content-type']};base64,${Buffer.from(imgDownload.data).toString('base64')}` });
                 }
                 return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Ditolak API Botcahx. Pastikan ada wajah di foto!" });
@@ -142,7 +101,36 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 4: SOSMED DOWNLOADER, YT PLAY & PINTEREST
+    // FITUR 4: WEBSITE SCREENSHOT (SSWEB) 📸
+    // =======================================================
+    if (action === 'ssweb') {
+        if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ APIKEY BOTCAHX KOSONG!" });
+        try {
+            let targetUrl = username.trim();
+            if (!/^https?:\/\//i.test(targetUrl)) targetUrl = 'https://' + targetUrl;
+            const device = req.body.device || 'desktop';
+            const width = device === 'desktop' ? 1920 : 390;
+            const height = device === 'desktop' ? 1080 : 844;
+
+            const apiUrl = `https://api.botcahx.eu.org/api/tools/ssweb?url=${encodeURIComponent(targetUrl)}&device=${device}&width=${width}&height=${height}&apikey=${btcKey}`;
+            
+            let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 35000, validateStatus: () => true });
+            const contentType = btcRes.headers['content-type'] || '';
+            
+            if (!contentType.includes('image')) {
+                const textResponse = Buffer.from(btcRes.data).toString('utf-8');
+                return res.status(400).json({ status: "error", message: `SSWeb Gagal. Web target mungkin down/memblokir bot. Balasan: ${textResponse.substring(0, 50)}...` });
+            }
+
+            const finalBase64 = Buffer.from(btcRes.data).toString('base64');
+            return res.status(200).json({ status: "success", data: `data:${contentType};base64,${finalBase64}`, device, url: targetUrl });
+        } catch (error) {
+            return res.status(500).json({ status: "error", message: `SSWeb Error: ${error.message}` });
+        }
+    }
+
+    // =======================================================
+    // FITUR 5: SOSMED DOWNLOADER, YT PLAY & PINTEREST
     // =======================================================
     if (action === 'tiktok' || action === 'youtube' || action === 'yt_play' || action === 'pinterest') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ APIKEY BOTCAHX BELUM DISYNC!" });
@@ -170,7 +158,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 5: CORE AI BARMODS ASSISTANT
+    // FITUR 6: CORE AI BARMODS ASSISTANT
     // =======================================================
     if (action === 'ai_chat') {
         if (!groqKey) return res.status(200).json({ status: "success", reply: "API Key Groq Kosong." });
@@ -181,7 +169,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 6: VPN PANEL DEPLOYMENT
+    // FITUR 7: VPN PANEL DEPLOYMENT
     // =======================================================
     if (!domain || !auth || !adminPin) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env belum lengkap!" });
     if (dev_pin !== adminPin) return res.status(403).json({ status: "error", message: "AKSES DITOLAK! Developer PIN salah." });
