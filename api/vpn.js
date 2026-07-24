@@ -139,9 +139,13 @@ module.exports = async (req, res) => {
             }
 
             // TAHAP 2: FALLBACK API KMSP
+            // PENGATURAN API DARI ENVIRONMENT VERCEL (Fallback ke Default)
+            const kmspAuth = process.env.KMSP_AUTH || "Basic c2lkb21wdWxhcGk6YXBpZ3drbXNw";
+            const kmspKey = process.env.KMSP_API_KEY || "60ef29aa-a648-4668-90ae-20951ef90c55";
+
             const kmspRes = await axios.get("https://apigw.kmsp-store.com/sidompul/v4/cek_kuota", {
                 params: { msisdn, isJSON: true },
-                headers: { Authorization: "Basic c2lkb21wdWxhcGk6YXBpZ3drbXNw", "X-API-Key": "60ef29aa-a648-4668-90ae-20951ef90c55", "X-App-Version": "4.0.0" },
+                headers: { Authorization: kmspAuth, "X-API-Key": kmspKey, "X-App-Version": "4.0.0" },
                 timeout: 20000
             });
 
@@ -157,26 +161,38 @@ module.exports = async (req, res) => {
             htmlOut += `⚠️ <b>Tenggang</b>   : ${sp.grace_period?.value || "-"}\n\n`;
 
             if (resData.data?.hasil) {
-                const raw = String(resData.data.hasil).replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/=+/g, "");
-                const sections = raw.split(/(?=🎁 Quota:|🎁 Benefit:)/g);
+                const rawText = String(resData.data.hasil).replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
                 htmlOut += `<b>📊 DETAIL KUOTA:</b>\n`;
-                for (const sec of sections) {
-                    const lines = sec.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
-                    let name = "", total = "", sisa = "", exp = "";
-                    for (const ln of lines) {
-                        if (ln.includes("🎁 Quota:") || ln.includes("🎁 Benefit:")) name = ln.replace(/🎁 (Quota|Benefit):\s*/, "");
-                        if (ln.includes("🎁 Kuota:")) total = ln.replace(/🎁 Kuota:\s*/, "");
-                        if (ln.includes("🌲 Sisa Kuota:")) sisa = ln.replace(/🌲 Sisa Kuota:\s*/, "");
-                        if (ln.includes("🍂 Aktif Hingga:")) exp = ln.replace(/🍂 Aktif Hingga:\s*/, "");
+                
+                // Mencegah hasil kosong jika API berubah (Anti-Blank)
+                if (rawText.includes("🎁 Quota:") || rawText.includes("🎁 Benefit:")) {
+                    const sections = rawText.split(/(?=🎁 Quota:|🎁 Benefit:)/g);
+                    let parsedData = false;
+                    for (const sec of sections) {
+                        const lines = sec.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                        let name = "", total = "", sisa = "", exp = "";
+                        for (const ln of lines) {
+                            if (ln.includes("🎁 Quota:") || ln.includes("🎁 Benefit:")) name = ln.replace(/🎁 (Quota|Benefit):\s*/, "");
+                            if (ln.includes("🎁 Kuota:")) total = ln.replace(/🎁 Kuota:\s*/, "");
+                            if (ln.includes("🌲 Sisa Kuota:")) sisa = ln.replace(/🌲 Sisa Kuota:\s*/, "");
+                            if (ln.includes("🍂 Aktif Hingga:")) exp = ln.replace(/🍂 Aktif Hingga:\s*/, "");
+                        }
+                        if (!name) continue;
+                        parsedData = true;
+                        const totalBytes = parseSize(total); const sisaBytes = parseSize(sisa);
+                        htmlOut += `\n📦 <b>${name}</b>\n`;
+                        if (exp) htmlOut += `<i>Exp: ${exp}</i>\n`;
+                        if (total && sisa) {
+                            const bar = progressBar(sisaBytes, totalBytes);
+                            htmlOut += `  • <b>Kuota:</b> ${sisa} / ${total}\n  • <span class="text-cyan-400">[${bar}]</span>\n`;
+                        } else if (total) { htmlOut += `  • <b>Kuota:</b> ${total}\n`; }
                     }
-                    if (!name) continue;
-                    const totalBytes = parseSize(total); const sisaBytes = parseSize(sisa);
-                    htmlOut += `\n📦 <b>${name}</b>\n`;
-                    if (exp) htmlOut += `<i>Exp: ${exp}</i>\n`;
-                    if (total && sisa) {
-                        const bar = progressBar(sisaBytes, totalBytes);
-                        htmlOut += `  • <b>Kuota:</b> ${sisa} / ${total}\n  • <span class="text-cyan-400">[${bar}]</span>\n`;
-                    } else if (total) { htmlOut += `  • <b>Kuota:</b> ${total}\n`; }
+                    if (!parsedData && rawText) htmlOut += `\n${rawText}\n`;
+                } else if (rawText) {
+                    // Jika tidak ada Emoji sama sekali, Print mentah saja!
+                    htmlOut += `\n${rawText}\n`;
+                } else {
+                    htmlOut += `❌ <i>Tidak ada info detail kuota.</i>\n`;
                 }
             } else { htmlOut += `❌ <i>Tidak ada info kuota.</i>\n`; }
             
