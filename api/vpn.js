@@ -56,90 +56,132 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 3: AI IMAGE STUDIO (AUTO FALLBACK ANTI-ERROR) 🖼️✨
+    // FITUR 3: CEK KUOTA (BENDITH & KMSP DOUBLE ENGINE) 📶
     // =======================================================
-    if (action === 'tofigure' || action === 'remini') {
-        if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ VARIABEL `BOTCAHX_APIKEY` BELUM DITAMBAHKAN!" });
+    if (action === 'cekkuota') {
+        if (!username) return res.status(400).json({ status: "error", message: "Nomor tidak boleh kosong!" });
+
+        function normalizeNumber(input) {
+            let s = String(input).trim().replace(/[\s().\-]/g, "");
+            if (s.startsWith("+")) s = s.slice(1);
+            if (/^0\d+$/i.test(s)) s = "62" + s.slice(1);
+            else if (/^8\d+$/i.test(s)) s = "62" + s;
+            if (s.length < 10 || s.length > 15) return null;
+            return s;
+        }
+
+        const msisdn = normalizeNumber(username);
+        if (!msisdn) return res.status(400).json({ status: "error", message: "Format nomor tidak valid!" });
+
+        function parseSize(sizeStr) {
+            if (!sizeStr || typeof sizeStr !== "string") return 0;
+            const cleanStr = sizeStr.replace(/,/g, "").trim();
+            const match = cleanStr.match(/^([\d.]+)\s*(GB|MB|KB|TB)?/i);
+            if (!match) return 0;
+            const value = parseFloat(match[1]);
+            const unit = (match[2] || "MB").toUpperCase();
+            switch (unit) {
+                case "TB": return value * 1024 ** 4; case "GB": return value * 1024 ** 3;
+                case "MB": return value * 1024 ** 2; case "KB": return value * 1024;
+                default: return value;
+            }
+        }
+
+        function progressBar(remaining, total) {
+            try {
+                if (!total || total === 0) return "▫▫▫▫▫▫▫▫▫▫";
+                const pct = Math.max(0, Math.min(1, remaining / total));
+                const filled = Math.round(pct * 10);
+                return "▓".repeat(filled) + "░".repeat(10 - filled) + ` ${(pct * 100).toFixed(0)}%`;
+            } catch { return "▫▫▫▫▫▫▫▫▫▫"; }
+        }
+
         try {
-            let targetUrl = req.body.imageUrl; const imageBase64 = req.body.imageBase64; const version = req.body.version || 'v1';
-            
-            // Auto Bypass Uploader
-            if (imageBase64) {
-                const buffer = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""), 'base64');
-                const boundary = '----BarmodsFormBoundaryVIP';
-                try {
-                    const payloadTmp = Buffer.concat([ Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="image.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`), buffer, Buffer.from(`\r\n--${boundary}--\r\n`) ]);
-                    const upRes = await axios.post('https://tmpfiles.org/api/v1/upload', payloadTmp, { headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` }, validateStatus: () => true });
-                    if (upRes.data?.data?.url) targetUrl = upRes.data.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-                } catch (e) {}
-                if (!targetUrl) {
-                    try {
-                        const payloadCatbox = Buffer.concat([ Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="reqtype"\r\n\r\nfileupload\r\n`), Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="fileToUpload"; filename="image.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`), buffer, Buffer.from(`\r\n--${boundary}--\r\n`) ]);
-                        const catRes = await axios.post('https://catbox.moe/user/api.php', payloadCatbox, { headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` }, validateStatus: () => true });
-                        if (typeof catRes.data === 'string' && catRes.data.startsWith('http')) targetUrl = catRes.data.trim();
-                    } catch (e) {}
-                }
-                if (!targetUrl) throw new Error("Semua server uploader sementara diblokir.");
-            }
-            if (!targetUrl) return res.status(400).json({ status: "error", message: "Foto / URL tidak valid!" });
+            // TAHAP 1: API BENDITH
+            let bendSuccess = false; let bendData = null;
+            try {
+                const bendRes = await axios.get(`https://bendith.my.id/end.php?check=package&number=${msisdn}&version=2`, { timeout: 15000 });
+                if (bendRes.data && bendRes.data.success && bendRes.data.data && bendRes.data.data.subs_info) { bendSuccess = true; bendData = bendRes.data; }
+            } catch (e) {}
 
-            // LOOP ENDPOINT CADANGAN (Mencegah "Failed to upscale image")
-            let endpoints = [];
-            if (action === 'remini') {
-                endpoints = ['/api/tools/remini', '/api/tools/hd', '/api/tools/upscale', '/api/maker/remini', '/api/image/remini'];
-            } else {
-                endpoints = [version === 'v2' ? '/api/maker/tofigure-v2' : version === 'v3' ? '/api/maker/tofigure-v3' : '/api/maker/tofigure'];
-            }
+            let htmlOut = `<div class="text-[#00ff41]">════════════════════════════════════════════════\n        [ 📡 CEK KUOTA CELLULAR ]\n════════════════════════════════════════════════\n\n`;
 
-            let successBuffer = null;
-            let finalContentType = '';
-            let lastErrorMessage = 'Unknown Error';
+            if (bendSuccess) {
+                const info = bendData.data.subs_info || {};
+                const pkgs = bendData.data.package_info?.packages || [];
+                
+                htmlOut += `📱 <b>Nomor</b>      : ${msisdn}\n`;
+                htmlOut += `💳 <b>Operator</b>   : ${info.operator || "XL/Axis"}\n`;
+                htmlOut += `📶 <b>Jaringan</b>   : ${info.net_type || "-"}\n`;
+                htmlOut += `📅 <b>Masa Aktif</b> : ${info.exp_date || "-"}\n`;
+                htmlOut += `⚠️ <b>Tenggang</b>   : ${info.grace_until || "-"}\n`;
+                htmlOut += `⏳ <b>Umur Kartu</b> : ${info.tenure || "-"}\n\n`;
 
-            // Coba eksekusi satu per satu
-            for (let ep of endpoints) {
-                try {
-                    const apiUrl = `https://api.botcahx.eu.org${ep}?url=${encodeURIComponent(targetUrl)}&apikey=${btcKey}`;
-                    let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 45000, validateStatus: () => true });
-                    
-                    const contentType = btcRes.headers['content-type'] || '';
-                    
-                    if (contentType.includes('application/json') || !contentType.includes('image')) {
-                        const textResponse = Buffer.from(btcRes.data).toString('utf-8'); 
-                        let jsonResponse;
-                        try { jsonResponse = JSON.parse(textResponse); } catch(e) { lastErrorMessage = "Server API Down"; continue; }
-                        
-                        // Jika ternyata JSON isinya link sukses
-                        if (jsonResponse.status && jsonResponse.result) {
-                            let finalUrl = jsonResponse.result.url || jsonResponse.result;
-                            let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
-                            successBuffer = Buffer.from(imgDownload.data);
-                            finalContentType = imgDownload.headers['content-type'];
-                            break; // BERHASIL! Keluar dari loop
+                if (pkgs.length === 0) { htmlOut += `❌ <i>Tidak ada info paket.</i>\n`; } 
+                else {
+                    htmlOut += `<b>📊 DETAIL PAKET:</b>\n`;
+                    for (const p of pkgs) {
+                        htmlOut += `\n📦 <b>${p.name || "-"}</b>\n<i>Exp: ${p.expiry || "-"}</i>\n`;
+                        const quotas = p.quotas || [];
+                        for (const q of quotas) {
+                            const totalBytes = parseSize(q.total); const remainBytes = parseSize(q.remaining);
+                            let bar = ""; if (totalBytes && remainBytes) bar = progressBar(remainBytes, totalBytes);
+                            
+                            htmlOut += `  • <b>${q.name || "-"}</b>\n`;
+                            htmlOut += `    ${q.remaining || "-"} / ${q.total || "-"}\n`;
+                            if (bar) htmlOut += `    <span class="text-cyan-400">[${bar}]</span>\n`;
+                            else if (q.percent != null) htmlOut += `    ⏳ ${q.percent}%\n`;
                         }
-                        
-                        // Jika Gagal (Misal: "Failed to upscale image"), catat error lalu lanjut loop berikutnya
-                        lastErrorMessage = jsonResponse.message || jsonResponse.error || "Ditolak API Botcahx.";
-                        continue; 
                     }
-                    
-                    // Jika langsung mengembalikan buffer gambar
-                    successBuffer = Buffer.from(btcRes.data);
-                    finalContentType = contentType;
-                    break; // BERHASIL! Keluar dari loop
-
-                } catch (err) {
-                    lastErrorMessage = err.message;
                 }
+                htmlOut += `\n════════════════════════════════════════════════\n[OK] SOURCE: BENDITH API</div>`;
+                return res.status(200).json({ status: "success", data: htmlOut });
             }
 
-            // Jika semua endpoint dari Botcahx gagal memproses
-            if (!successBuffer) {
-                return res.status(400).json({ status: "error", message: lastErrorMessage });
-            }
+            // TAHAP 2: FALLBACK API KMSP
+            const kmspRes = await axios.get("https://apigw.kmsp-store.com/sidompul/v4/cek_kuota", {
+                params: { msisdn, isJSON: true },
+                headers: { Authorization: "Basic c2lkb21wdWxhcGk6YXBpZ3drbXNw", "X-API-Key": "60ef29aa-a648-4668-90ae-20951ef90c55", "X-App-Version": "4.0.0" },
+                timeout: 20000
+            });
 
-            // Jika berhasil
-            const finalBase64 = successBuffer.toString('base64');
-            return res.status(200).json({ status: "success", data: `data:${finalContentType};base64,${finalBase64}` });
+            if (!kmspRes.data || !kmspRes.data.status) return res.status(400).json({ status: "error", message: "Gagal cek kuota atau nomor tidak ditemukan (KMSP & Bendith Down)." });
+
+            const resData = kmspRes.data; const sp = resData.data?.data_sp || {};
+            
+            htmlOut += `📱 <b>Nomor</b>      : ${msisdn}\n`;
+            htmlOut += `💳 <b>Operator</b>   : ${sp.prefix?.value || "-"}\n`;
+            htmlOut += `📶 <b>Status 4G</b>  : ${sp.status_4g?.value || "-"}\n`;
+            htmlOut += `📅 <b>Umur Kartu</b> : ${sp.active_card?.value || "-"}\n`;
+            htmlOut += `⏰ <b>Masa Aktif</b> : ${sp.active_period?.value || "-"}\n`;
+            htmlOut += `⚠️ <b>Tenggang</b>   : ${sp.grace_period?.value || "-"}\n\n`;
+
+            if (resData.data?.hasil) {
+                const raw = String(resData.data.hasil).replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/=+/g, "");
+                const sections = raw.split(/(?=🎁 Quota:|🎁 Benefit:)/g);
+                htmlOut += `<b>📊 DETAIL KUOTA:</b>\n`;
+                for (const sec of sections) {
+                    const lines = sec.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                    let name = "", total = "", sisa = "", exp = "";
+                    for (const ln of lines) {
+                        if (ln.includes("🎁 Quota:") || ln.includes("🎁 Benefit:")) name = ln.replace(/🎁 (Quota|Benefit):\s*/, "");
+                        if (ln.includes("🎁 Kuota:")) total = ln.replace(/🎁 Kuota:\s*/, "");
+                        if (ln.includes("🌲 Sisa Kuota:")) sisa = ln.replace(/🌲 Sisa Kuota:\s*/, "");
+                        if (ln.includes("🍂 Aktif Hingga:")) exp = ln.replace(/🍂 Aktif Hingga:\s*/, "");
+                    }
+                    if (!name) continue;
+                    const totalBytes = parseSize(total); const sisaBytes = parseSize(sisa);
+                    htmlOut += `\n📦 <b>${name}</b>\n`;
+                    if (exp) htmlOut += `<i>Exp: ${exp}</i>\n`;
+                    if (total && sisa) {
+                        const bar = progressBar(sisaBytes, totalBytes);
+                        htmlOut += `  • <b>Kuota:</b> ${sisa} / ${total}\n  • <span class="text-cyan-400">[${bar}]</span>\n`;
+                    } else if (total) { htmlOut += `  • <b>Kuota:</b> ${total}\n`; }
+                }
+            } else { htmlOut += `❌ <i>Tidak ada info kuota.</i>\n`; }
+            
+            htmlOut += `\n════════════════════════════════════════════════\n[OK] SOURCE: KMSP API</div>`;
+            return res.status(200).json({ status: "success", data: htmlOut });
 
         } catch (error) { return res.status(500).json({ status: "error", message: `Sistem Error: ${error.message}` }); }
     }
