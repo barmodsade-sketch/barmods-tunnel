@@ -139,7 +139,6 @@ module.exports = async (req, res) => {
             }
 
             // TAHAP 2: FALLBACK API KMSP
-            // PENGATURAN API DARI ENVIRONMENT VERCEL (Fallback ke Default)
             const kmspAuth = process.env.KMSP_AUTH || "Basic c2lkb21wdWxhcGk6YXBpZ3drbXNw";
             const kmspKey = process.env.KMSP_API_KEY || "60ef29aa-a648-4668-90ae-20951ef90c55";
 
@@ -161,10 +160,17 @@ module.exports = async (req, res) => {
             htmlOut += `⚠️ <b>Tenggang</b>   : ${sp.grace_period?.value || "-"}\n\n`;
 
             if (resData.data?.hasil) {
-                const rawText = String(resData.data.hasil).replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").trim();
+                // Perbaikan Anti-Blank Parser
+                const rawText = String(resData.data.hasil)
+                    .replace(/<br\s*\/?>/gi, "\n")
+                    .replace(/<\/li>/gi, "\n")
+                    .replace(/<[^>]*>/g, "")
+                    .replace(/&nbsp;/g, " ")
+                    .replace(/&amp;/g, "&")
+                    .trim();
+
                 htmlOut += `<b>📊 DETAIL KUOTA:</b>\n`;
                 
-                // Mencegah hasil kosong jika API berubah (Anti-Blank)
                 if (rawText.includes("🎁 Quota:") || rawText.includes("🎁 Benefit:")) {
                     const sections = rawText.split(/(?=🎁 Quota:|🎁 Benefit:)/g);
                     let parsedData = false;
@@ -189,8 +195,12 @@ module.exports = async (req, res) => {
                     }
                     if (!parsedData && rawText) htmlOut += `\n${rawText}\n`;
                 } else if (rawText) {
-                    // Jika tidak ada Emoji sama sekali, Print mentah saja!
-                    htmlOut += `\n${rawText}\n`;
+                    // Jika API KMSP mengembalikan teks tanpa Emoji, susun menjadi list yang rapi
+                    const rawLines = rawText.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+                    htmlOut += `\n`;
+                    rawLines.forEach(line => {
+                        htmlOut += `  🔸 ${line}\n`;
+                    });
                 } else {
                     htmlOut += `❌ <i>Tidak ada info detail kuota.</i>\n`;
                 }
@@ -273,9 +283,18 @@ module.exports = async (req, res) => {
 
     let url = ''; let endpoint = '';
     try {
-        if (action === 'create' || action === 'trial') { endpoint = `${action}${protocol}`; url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&iplimit=${iplimit}&auth=${auth}` + (protocol === 'ssh' ? `&password=${password}` : `&quota=${quota}`); } 
-        else if (action === 'renew') { endpoint = `renew${protocol}`; url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&iplimit=${iplimit}&auth=${auth}` + (protocol !== 'ssh' ? `&quota=${quota}` : ''); } 
-        else if (action === 'delete') { endpoint = `del${protocol}`; url = `http://${domain}:5888/${endpoint}?user=${username}&auth=${auth}`; }
+        if (action === 'create' || action === 'trial') { 
+            endpoint = `${action}${protocol}`; 
+            url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&iplimit=${iplimit}&auth=${auth}` + (protocol === 'ssh' ? `&password=${password}` : `&quota=${quota}`); 
+        } 
+        else if (action === 'renew') { 
+            endpoint = `renew${protocol}`; 
+            url = `http://${domain}:5888/${endpoint}?user=${username}&exp=${exp}&iplimit=${iplimit}&auth=${auth}` + (protocol !== 'ssh' ? `&quota=${quota}` : ''); 
+        } 
+        else if (action === 'delete') { 
+            endpoint = `del${protocol}`; 
+            url = `http://${domain}:5888/${endpoint}?user=${username}&auth=${auth}`; 
+        }
 
         let response = await axios.get(url, { validateStatus: () => true, timeout: 15000 });
         if (action === 'delete' && response.status === 404) response = await axios.get(`http://${domain}:5888/delete${protocol}?user=${username}&auth=${auth}`, { validateStatus: () => true, timeout: 15000 });
