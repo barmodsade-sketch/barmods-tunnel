@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barmods Tunnel | Ultimate Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@500;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow: hidden; }
+        .bg-grid { position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(to right, rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.015) 1px, transparent 1px); background-size: 35px 35px; }
+        .bg-glow { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.07), transparent 35%), radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.07), transparent 35%); animation: breathe 8s ease-in-out infinite alternate; }
+        @keyframes breathe { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 1; transform: scale(1.1); } }
+        
+        /* Animasi Teks Lagu Berjalan */
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+        .animate-marquee { animation: marquee 7s linear infinite; display: inline-block; white-space: nowrap; }
+
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.04); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); }
+        .glass-sidebar { background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-header { background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .font-outfit { font-family: 'Outfit', sans-serif; } .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .text-glow { background: linear-gradient(to right, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(0, 242, 254, 0.3); }
+        .input-vip { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); color: #e2e8f0; transition: all 0.3s ease; }
+        .input-vip:focus { background: rgba(0, 0, 0, 0.7); border-color: #00f2fe; box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); outline: none; }
+        .btn-vip { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); background-size: 200% auto; transition: 0.5s; }
+        .btn-vip:hover { background-position: right center; box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4); transform: translateY(-1px); }
+        .nav-item { transition: all 0.3s ease; }
+        .nav-active { background: linear-gradient(90deg, rgba(6,182,212,0.15) 0%, transparent 100%); border-left: 4px solid #22d3ee; color: #22d3ee; }
+        .nav-inactive { border-left: 4px solid transparent; color: #64748b; }
+        .nav-inactive:hover { background: rgba(255,255,255,0.02); color: #e2e8f0; }
+        .hidden-element { display: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; } .custom-scrollbar::-webkit-scrollbar-track { background: transparent; } .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+        #introScreen { transition: opacity 0.8s ease-out, visibility 0.8s ease-out; }
+        .intro-hidden { opacity: 0; visibility: hidden; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+    </style>
+</head>
+<body class="flex h-screen w-full selection:bg-cyan-500/30 relative">
+
+    <div id="introScreen" class="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center cursor-pointer">
+        <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"><source src="https://c.termai.cc/v193/WpOq7.mp4" type="video/mp4"></video>
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-80"></div>
+        <div class="relative z-10 text-center animate-pulse flex flex-col items-center">
+            <img src="https://cdn.yupra.my.id/yp/0zhfv6ka.jpg" class="w-32 h-32 rounded-full border-4 border-cyan-500 mb-6 shadow-[0_0_40px_rgba(6,182,212,0.8)] object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Bar+Mods&background=06b6d4&color=fff'">
+            <h1 class="text-3xl sm:text-4xl font-outfit font-black text-white tracking-widest mb-2 text-glow">BARMODS TUNNEL</h1>
+            <p class="text-cyan-400 font-mono-code mb-8 tracking-widest text-sm">SECURITY DATA CENTER</p>
+            <div class="px-8 py-3 bg-white/10 rounded-full border border-white/20 backdrop-blur-sm animate-bounce text-sm font-bold tracking-widest text-white shadow-xl">TAP ANYWHERE TO ENTER <i class="fa-solid fa-arrow-right ml-2"></i></div>
+        </div>
+    </div>
+
+    <!-- AUDIO ELEMENT HIDDEN (DIKONTROL JS) -->
+    <audio id="bgMusic" loop></audio>
+    <div class="bg-grid"></div><div class="bg-glow"></div>
+
+    <!-- FLOATING MUSIC PLAYER WIDGET -->
+    <div class="fixed bottom-[85px] md:bottom-8 right-4 md:right-8 z-[60] glass-card rounded-full pl-2 pr-4 py-2 flex items-center gap-3 shadow-[0_0_20px_rgba(6,182,212,0.3)] border border-cyan-500/30">
+        <div class="relative flex items-center justify-center">
+            <div id="musicGlow" class="absolute inset-0 bg-cyan-500 rounded-full blur-md opacity-50 animate-pulse hidden-element"></div>
+            <button id="musicToggleBtn" onclick="toggleMusic()" class="relative z-10 w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-cyan-400 hover:text-white hover:bg-cyan-500/20 transition">
+                <i class="fa-solid fa-play text-xs ml-0.5"></i>
+            </button>
+        </div>
+        <div class="w-24 md:w-32 overflow-hidden flex items-center border-r border-white/10 pr-3">
+            <div class="animate-marquee">
+                <span id="musicTitle" class="text-[10px] font-mono-code text-slate-300 font-bold tracking-widest uppercase">🎶 Menunggu...</span>
+            </div>
+        </div>
+        <button onclick="nextMusic()" class="text-cyan-400 hover:text-white transition hover:scale-110 active:scale-95">
+            <i class="fa-solid fa-forward-step text-sm"></i>
+        </button>
+    </div>
+
+    <aside class="w-72 glass-sidebar hidden md:flex flex-col h-full z-20 relative">
+        <div class="p-6 flex items-center gap-4 border-b border-white/5">
+            <img src="https://cdn.yupra.my.id/yp/0zhfv6ka.jpg" class="w-12 h-12 rounded-xl border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)] object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Root&background=06b6d4&color=fff'">
+            <div><h1 class="font-outfit font-black text-2xl text-glow tracking-widest">BARMODS</h1><p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">VIP Data Center</p></div>
+        </div>
+        <nav class="flex-1 py-6 space-y-1.5 overflow-y-auto custom-scrollbar px-3">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-4">Core Systems</p>
+            <button onclick="switchTab('dashboard', 'Server Dashboard')" id="nav-dashboard" class="nav-item nav-active w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-gauge-high w-5 text-center"></i><span>Dashboard</span></button>
+            <button onclick="switchTab('vpn', 'Deployment Center')" id="nav-vpn" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-network-wired w-5 text-center"></i><span>VPN Panel</span></button>
+            
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-4 mt-5">Intelligence & AI</p>
+            <button onclick="switchTab('ai', 'AI Barmods Core')" id="nav-ai" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-brain w-5 text-center text-pink-400"></i><span>AI Barmods</span></button>
+            <button onclick="switchTab('aistudio', 'AI Image Studio VIP')" id="nav-aistudio" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-wand-magic-sparkles w-5 text-center text-purple-400"></i><span>AI Studio</span></button>
+            
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-4 mt-5">Utilities</p>
+            <button onclick="switchTab('downloader', 'Media & Tools VIP')" id="nav-downloader" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-cloud-arrow-down w-5 text-center text-green-400"></i><span>Media & SSWeb</span></button>
+            <button onclick="switchTab('tourl', 'Multi-Cloud Uploader')" id="nav-tourl" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-cloud-arrow-up w-5 text-center text-blue-400"></i><span>Multi-Cloud</span></button>
+            <button onclick="switchTab('tools', 'IP Tracker & Radar')" id="nav-tools" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-satellite-dish w-5 text-center"></i><span>IP Radar</span></button>
+            
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-4 mt-5">About</p>
+            <button onclick="switchTab('developer', 'Developer Profile')" id="nav-developer" class="nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm"><i class="fa-solid fa-user-ninja w-5 text-center text-red-400"></i><span>Developer Info</span></button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full relative z-10 w-full">
+        <header class="glass-header h-20 px-5 md:px-10 flex items-center justify-between z-20">
+            <div class="md:hidden flex items-center gap-3"><h1 class="font-outfit font-black text-xl text-glow uppercase tracking-widest">Barmods</h1></div>
+            <div class="hidden md:block"><h2 id="pageTitle" class="text-2xl font-outfit font-bold text-white tracking-wider">Server Dashboard</h2></div>
+            <div class="flex items-center gap-5"><div class="hidden sm:flex items-center gap-2 text-slate-400 bg-black/20 px-4 py-2 rounded-lg border border-white/5"><i class="fa-solid fa-server text-emerald-500 text-xs"></i><span id="liveClock" class="text-sm font-mono-code font-bold text-slate-300">00:00:00</span></div><img src="https://cdn.yupra.my.id/yp/0zhfv6ka.jpg" class="w-10 h-10 rounded-full border-2 border-cyan-500/40 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Root&background=06b6d4&color=fff'"></div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 pb-32 md:pb-8">
+            
+            <!-- SECTION DASHBOARD -->
+            <div id="sectionDashboard" class="block space-y-6">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-card rounded-2xl p-5 relative"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Total Users</p><h3 class="text-3xl font-outfit font-black text-white">284</h3></div>
+                    <div class="glass-card rounded-2xl p-5 relative"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Node Uptime</p><h3 class="text-3xl font-outfit font-black text-emerald-400">99.8%</h3></div>
+                    <div class="glass-card rounded-2xl p-5 relative"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Active Protocols</p><h3 class="text-3xl font-outfit font-black text-white">5</h3></div>
+                    <div class="glass-card rounded-2xl p-5 relative"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Bandwidth Out</p><h3 class="text-3xl font-outfit font-black text-orange-400">1.2TB</h3></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-card rounded-3xl p-6 flex flex-col gap-5">
+                        <div class="flex items-center gap-3 border-b border-white/5 pb-3"><i class="fa-solid fa-microchip text-cyan-400 text-xl"></i><h3 class="font-outfit font-bold text-white">Hardware Metrics</h3></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-slate-300">CPU Usage</span><span class="text-cyan-400" id="cpuText">0%</span></div><div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full" style="width: 0%" id="cpuBar"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-slate-300">RAM Memory</span><span class="text-purple-400" id="ramText">0%</span></div><div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 0%" id="ramBar"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-slate-300">NVMe Storage</span><span class="text-emerald-400" id="diskText">0%</span></div><div class="w-full bg-slate-800 rounded-full h-2"><div class="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full" style="width: 0%" id="diskBar"></div></div></div>
+                    </div>
+                    <div class="lg:col-span-2 glass-card rounded-3xl p-1 flex flex-col h-80">
+                        <div class="bg-[#0b1120] px-5 py-3 flex items-center justify-between border-b border-slate-700/50 rounded-t-3xl"><span class="text-xs font-bold text-slate-300 tracking-widest uppercase">Live Traffic Log</span></div>
+                        <div class="flex-1 bg-[#020617] p-4 overflow-y-auto custom-scrollbar" id="liveLogBox"><div id="liveLogs" class="text-[11px] font-mono-code text-slate-400 space-y-1"><div class="text-cyan-400">[SYS] System started. Awaiting connection...</div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sectionVpn" class="hidden-element">
+                <div class="glass-card rounded-3xl p-6 sm:p-8">
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-lock text-red-500"></i> Developer Access Zone</h3>
+                    <form id="vpnForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Command Action</label><select id="action" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer"><option value="create">Deploy New Server</option><option value="trial">Generate Trial</option><option value="renew">Renew Access</option><option value="delete">Destroy Account</option></select></div>
+                            <div><label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Tunnel Protocol</label><select id="protocol" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer"><option value="vless">VLESS (V2Ray)</option><option value="vmess">VMESS (V2Ray)</option><option value="trojan">TROJAN (Xray)</option><option value="ssh">SSH / OVPN</option><option value="shadowsocks">SHADOWSOCKS</option></select></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Client Username</label><input type="text" id="username" placeholder="Username..." required class="input-vip w-full rounded-xl p-4 font-mono-code text-sm"></div>
+                            <div id="passGroup" class="hidden-element"><label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">SSH Password</label><input type="text" id="password" placeholder="Password..." class="input-vip w-full rounded-xl p-4 font-mono-code text-sm"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4" id="detailGroup">
+                            <div><label class="block text-[10px] text-slate-400 font-bold mb-2 text-center sm:text-left">Validity</label><input type="number" id="exp" value="30" class="input-vip w-full rounded-xl p-4 text-center font-bold"></div>
+                            <div><label class="block text-[10px] text-slate-400 font-bold mb-2 text-center sm:text-left">Limit IP</label><input type="number" id="iplimit" value="2" class="input-vip w-full rounded-xl p-4 text-center font-bold"></div>
+                            <div id="quotaGroup"><label class="block text-[10px] text-slate-400 font-bold mb-2 text-center sm:text-left">Quota GB</label><input type="number" id="quota" value="0" placeholder="0 = Unli" class="input-vip w-full rounded-xl p-4 text-center font-bold"></div>
+                        </div>
+                        <div class="border-t border-red-500/30 pt-6 mt-4">
+                            <label class="block text-xs text-red-400 font-bold mb-2 uppercase tracking-widest pl-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Developer PIN Required</label>
+                            <input type="password" id="devPin" placeholder="Masukkan PIN Rahasia Anda..." required class="input-vip w-full rounded-xl p-4 font-mono-code text-sm border-red-500/50 focus:border-red-500 bg-red-950/20 text-center tracking-[0.5em]">
+                        </div>
+                        <button type="submit" id="btnSubmitVpn" class="btn-vip w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(6,182,212,0.3)]"><i class="fa-solid fa-power-off"></i> EXECUTE DEPLOYMENT</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="sectionAi" class="hidden-element">
+                <div class="glass-card rounded-3xl p-4 sm:p-6 flex flex-col h-[500px]">
+                    <div class="flex items-center gap-3 border-b border-white/5 pb-3 mb-4"><i class="fa-solid fa-brain text-pink-500 text-xl"></i><div><h3 class="font-outfit font-bold text-white">AI Barmods Matrix</h3><p class="text-[9px] text-slate-500 uppercase font-mono-code">Powered by Groq Llama 3</p></div></div>
+                    <div id="chatLogBox" class="flex-1 bg-black/40 border border-white/5 rounded-2xl p-4 overflow-y-auto custom-scrollbar space-y-4 mb-4"><div class="flex gap-3 max-w-[85%]"><div class="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 text-xs"><i class="fa-solid fa-robot"></i></div><div class="bg-slate-900/80 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm text-slate-300">Halo Bos! Groq AI Llama 3 Siap melayani!</div></div></div>
+                    <div class="flex gap-2"><input type="text" id="aiInputPrompt" placeholder="Ketik pertanyaan..." onkeydown="if(event.key === 'Enter') sendAiMessage()" class="input-vip flex-1 rounded-xl px-4 py-3.5 text-sm"><button onclick="sendAiMessage()" id="btnSendAi" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 rounded-xl font-bold transition flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane"></i></button></div>
+                </div>
+            </div>
+
+            <!-- SECTION AI IMAGE STUDIO -->
+            <div id="sectionAistudio" class="hidden-element">
+                <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                    <i class="fa-solid fa-wand-magic-sparkles absolute -right-6 -bottom-6 text-[150px] opacity-[0.03] text-purple-500 pointer-events-none"></i>
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-image text-purple-400"></i> AI Image Studio</h3>
+                    
+                    <form id="aistudioForm" class="space-y-6 relative z-10">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Fitur AI</label>
+                                <select id="aiServiceMode" onchange="toggleAiService()" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
+                                    <option value="tofigure">🧸 To-Figure (Ubah 3D)</option>
+                                    <option value="remini">✨ Remini (Jernihkan HD)</option>
+                                </select>
+                            </div>
+                            <div id="tfStyleGroup">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Style Rendering (Khusus 3D)</label>
+                                <select id="tfVersion" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
+                                    <option value="v1">V1 (Standar Figure)</option>
+                                    <option value="v2">V2 (Alternatif Style)</option>
+                                    <option value="v3">V3 (Detail Maksimal)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-white/5">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Sumber Foto</label>
+                                <select id="tfMode" onchange="toggleTfMode()" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
+                                    <option value="upload">📁 Upload dari Galeri (Maks 3MB)</option>
+                                    <option value="url">🔗 Gunakan Link (URL)</option>
+                                </select>
+                            </div>
+                            <div id="tfUploadGroup">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Pilih File Foto</label>
+                                <input type="file" id="tfFile" accept="image/*" class="input-vip w-full rounded-xl p-3 font-mono-code text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-purple-500/20 file:text-purple-400 hover:file:bg-purple-500/30 cursor-pointer">
+                            </div>
+                            <div id="tfUrlGroup" class="hidden-element">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Link URL Foto</label>
+                                <input type="url" id="tfUrl" placeholder="https://..." class="input-vip w-full rounded-xl p-4 font-mono-code text-sm">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(168,85,247,0.3)]"><i class="fa-solid fa-fire"></i> SULAP GAMBAR SEKARANG!</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION MULTI-CLOUD UPLOADER -->
+            <div id="sectionTourl" class="hidden-element">
+                <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                    <i class="fa-solid fa-cloud-arrow-up absolute -right-6 -bottom-6 text-[150px] opacity-[0.03] text-blue-500 pointer-events-none"></i>
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-cloud-arrow-up text-blue-400"></i> Multi-Cloud Uploader</h3>
+                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-6 flex gap-3 text-sm text-blue-200"><i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i><p>Upload satu file, otomatis menyebar ke 6 Server sekaligus (Yupra, Catbox, dll). <b>Maksimal ukuran: 3.5 MB</b>.</p></div>
+                    <form id="tourlForm" class="space-y-6 relative z-10">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Pilih File (Foto / Audio / Dokumen)</label>
+                            <input type="file" id="tourlFile" required class="input-vip w-full rounded-xl p-3 font-mono-code text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-blue-500/20 file:text-blue-400 hover:file:bg-blue-500/30 cursor-pointer">
+                        </div>
+                        <button type="submit" id="btnSubmitTourl" class="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-400 hover:to-cyan-500 w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(59,130,246,0.3)]"><i class="fa-solid fa-rocket"></i> UPLOAD KE 6 SERVER</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION DOWNLOADER, PINTEREST, & SSWEB -->
+            <div id="sectionDownloader" class="hidden-element">
+                <div class="glass-card rounded-3xl p-6 sm:p-8">
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-cloud-arrow-down text-green-400"></i> Media & Tools VIP</h3>
+                    <form id="downloaderForm" class="space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="sm:col-span-1">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Mode Layanan</label>
+                                <select id="dlMode" class="input-vip w-full rounded-xl p-4 font-semibold text-sm cursor-pointer">
+                                    <option value="auto">🔗 Auto Media (TikTok/YT)</option>
+                                    <option value="yt_play">🎵 Cari Lagu (YT Play)</option>
+                                    <option value="pinterest">🖼️ Pinterest Search</option>
+                                    <option value="ssweb_pc">💻 SS Web (Desktop PC)</option>
+                                    <option value="ssweb_hp">📱 SS Web (Mobile HP)</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Input Target / Query URL</label>
+                                <input type="text" id="mediaUrl" placeholder="Ketik Link / Judul Lagu / Web URL..." required class="input-vip w-full rounded-xl p-4 font-mono-code text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" id="btnSubmitDownloader" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(16,185,129,0.3)]"><i class="fa-solid fa-bolt"></i> PROSES REQUEST</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="sectionTools" class="hidden-element">
+                <div class="glass-card rounded-3xl p-6 sm:p-8">
+                    <h3 class="text-lg font-outfit font-bold mb-6 text-white border-b border-white/10 pb-3 flex items-center gap-3"><i class="fa-solid fa-satellite-dish text-purple-400"></i> Network Radar</h3>
+                    <form id="toolsForm" class="space-y-6">
+                        <div><label class="block text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-widest pl-1">Target Address</label><input type="text" id="ipTarget" placeholder="8.8.8.8" required class="input-vip w-full rounded-xl p-4 font-mono-code"></div>
+                        <button type="submit" class="btn-vip w-full text-white font-outfit font-bold tracking-widest text-lg py-4 rounded-xl flex justify-center items-center gap-3"><i class="fa-solid fa-crosshairs"></i> START TRACKING</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="sectionDeveloper" class="hidden-element">
+                <div class="glass-card rounded-3xl p-6 sm:p-10 flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border-b border-white/5"></div>
+                    <img src="https://cdn.yupra.my.id/yp/0zhfv6ka.jpg" class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-cyan-500/50 shadow-[0_0_40px_rgba(6,182,212,0.4)] object-cover relative z-10 mt-4 mb-4">
+                    <h2 class="text-3xl sm:text-4xl font-outfit font-black text-white tracking-widest text-glow uppercase">barmods</h2>
+                    <p class="text-cyan-400 font-mono-code text-sm tracking-widest mb-8">System Administrator & Developer</p>
+                    <div class="w-full max-w-lg space-y-4">
+                        <div class="bg-black/40 border border-white/5 p-4 sm:p-5 rounded-2xl flex items-center justify-between hover:bg-white/5 transition"><div class="flex items-center gap-4"><i class="fa-solid fa-cake-candles text-pink-400 text-2xl w-8"></i><span class="text-slate-300 font-bold tracking-wider text-sm sm:text-base">Umur</span></div><span class="text-white font-mono-code font-bold">18 Tahun</span></div>
+                        <a href="https://wa.me/6283877842721" target="_blank" class="bg-black/40 border border-white/5 p-4 sm:p-5 rounded-2xl flex items-center justify-between hover:bg-[#25D366]/20 transition border border-transparent hover:border-[#25D366]/50 group"><div class="flex items-center gap-4"><i class="fa-brands fa-whatsapp text-[#25D366] text-2xl w-8"></i><span class="text-slate-300 font-bold tracking-wider group-hover:text-[#25D366] transition text-sm sm:text-base">WhatsApp</span></div><span class="text-white font-mono-code font-bold group-hover:text-[#25D366] transition">+62 838-7784-2721</span></a>
+                        <a href="https://t.me/barmods" target="_blank" class="bg-black/40 border border-white/5 p-4 sm:p-5 rounded-2xl flex items-center justify-between hover:bg-[#229ED9]/20 transition border border-transparent hover:border-[#229ED9]/50 group"><div class="flex items-center gap-4"><i class="fa-brands fa-telegram text-[#229ED9] text-2xl w-8"></i><span class="text-slate-300 font-bold tracking-wider group-hover:text-[#229ED9] transition text-sm sm:text-base">Telegram</span></div><span class="text-white font-mono-code font-bold group-hover:text-[#229ED9] transition">@barmods</span></a>
+                        <a href="https://tiktok.com/@barmods" target="_blank" class="bg-black/40 border border-white/5 p-4 sm:p-5 rounded-2xl flex items-center justify-between hover:bg-[#ff0050]/20 transition border border-transparent hover:border-[#ff0050]/50 group"><div class="flex items-center gap-4"><i class="fa-brands fa-tiktok text-white text-2xl w-8 drop-shadow-[0_0_5px_#ff0050]"></i><span class="text-slate-300 font-bold tracking-wider group-hover:text-white transition text-sm sm:text-base">TikTok</span></div><span class="text-white font-mono-code font-bold group-hover:text-white transition">@barmods</span></a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultBox" class="mt-8 hidden-element relative z-10 animate-[slideUp_0.4s_ease-out]">
+                <div class="bg-[#0b1120] rounded-t-2xl px-5 py-3 flex items-center border border-b-0 border-slate-700/50">
+                    <div class="flex gap-2 w-20"><div class="w-3 h-3 rounded-full bg-red-500/80"></div><div class="w-3 h-3 rounded-full bg-yellow-500/80"></div><div class="w-3 h-3 rounded-full bg-green-500/80"></div></div>
+                    <div class="flex-1 text-center text-[10px] font-mono-code text-slate-500 tracking-widest">root@barmods-datacenter:~#</div>
+                    <div class="w-20 text-right"><button onclick="copyResult()" class="text-xs bg-slate-800 hover:bg-slate-700 transition px-3 py-1.5 rounded border border-slate-700 text-slate-300 flex items-center gap-1.5 ml-auto"><i class="fa-regular fa-copy"></i> Copy</button></div>
+                </div>
+                <div class="bg-[#020617] border border-slate-700/50 p-1.5 rounded-b-2xl relative shadow-2xl">
+                    <div id="videoLoader" class="hidden-element absolute inset-0 z-30 bg-black/80 flex flex-col items-center justify-center rounded-b-xl backdrop-blur-sm"><video autoplay loop muted playsinline class="w-20 h-20 rounded-full border-2 border-cyan-500 mb-4"><source src="https://c.termai.cc/v193/WpOq7.mp4" type="video/mp4"></video><p class="text-cyan-400 font-mono-code text-xs animate-pulse tracking-widest" id="loadingText">Processing...</p></div>
+                    <div id="outputText" class="p-6 text-[#00ff41] font-mono-code text-[12px] sm:text-sm overflow-x-auto whitespace-pre-wrap leading-relaxed relative z-20"></div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 w-full bg-[#0b1121]/95 backdrop-blur-xl border-t border-slate-800 z-50 flex justify-between items-center px-1 py-2 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)] overflow-x-auto custom-scrollbar">
+        <button onclick="switchTab('dashboard', 'Server Dashboard')" id="mob-nav-dashboard" class="flex-none w-[16%] flex flex-col items-center gap-1 text-cyan-400 scale-110 pt-1"><i class="fa-solid fa-gauge-high text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Dash</span></button>
+        <button onclick="switchTab('vpn', 'Deployment Center')" id="mob-nav-vpn" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-network-wired text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">VPN</span></button>
+        <button onclick="switchTab('ai', 'AI Barmods Core')" id="mob-nav-ai" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-brain text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">AI</span></button>
+        <button onclick="switchTab('aistudio', 'AI Image Studio VIP')" id="mob-nav-aistudio" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-wand-magic-sparkles text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Studio</span></button>
+        <button onclick="switchTab('downloader', 'Media & Tools VIP')" id="mob-nav-downloader" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-cloud-arrow-down text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Media</span></button>
+        <button onclick="switchTab('developer', 'Developer Profile')" id="mob-nav-developer" class="flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1"><i class="fa-solid fa-user-ninja text-[14px]"></i><span class="text-[7px] font-bold uppercase tracking-wider">Dev</span></button>
+    </nav>
+
+    <script>
+        // ======================= MULTI SOUND MUSIC PLAYER =======================
+        const playlist = [
+            { title: "🎵 CYBER HACKER BGM", src: "https://cdn.yupra.my.id/yp/51eph5o8.mp3" },
+            { title: "🎵 CYBERPUNK THEME", src: "https://cdn.yupra.my.id/yp/xus5n1vp.mp3" }
+        ];
+        let currentTrack = 0;
+        const bgMusic = document.getElementById('bgMusic');
+        const musicTitle = document.getElementById('musicTitle');
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        const musicGlow = document.getElementById('musicGlow');
+
+        function loadTrack(index) {
+            bgMusic.src = playlist[index].src;
+            musicTitle.innerText = playlist[index].title;
+            bgMusic.load();
+            playMusic();
+        }
+
+        function playMusic() {
+            bgMusic.play().catch(e => console.log("Auto-play diblokir browser"));
+            musicToggleBtn.innerHTML = '<i class="fa-solid fa-pause text-xs"></i>';
+            musicGlow.classList.remove('hidden-element');
+        }
+
+        function pauseMusic() {
+            bgMusic.pause();
+            musicToggleBtn.innerHTML = '<i class="fa-solid fa-play text-xs ml-0.5"></i>';
+            musicGlow.classList.add('hidden-element');
+        }
+
+        function toggleMusic() {
+            if (bgMusic.paused) playMusic();
+            else pauseMusic();
+        }
+
+        function nextMusic() {
+            currentTrack = (currentTrack + 1) % playlist.length;
+            loadTrack(currentTrack);
+        }
+
+        document.getElementById('introScreen').addEventListener('click', function() {
+            this.classList.add('intro-hidden'); 
+            bgMusic.volume = 0.5; 
+            loadTrack(0); // Mainkan lagu pertama saat masuk
+            setTimeout(() => this.style.display = 'none', 800);
+        });
+
+        // =========================================================================
+
+        setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false }); }, 1000);
+
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'server_stats' }) });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    document.getElementById('cpuText').innerText = (res.data.cpu || 0) + '%'; document.getElementById('cpuBar').style.width = (res.data.cpu || 0) + '%';
+                    document.getElementById('ramText').innerText = (res.data.ram || 0) + '%'; document.getElementById('ramBar').style.width = (res.data.ram || 0) + '%';
+                }
+            } catch (err) {}
+        }, 3000); 
+
+        function switchTab(tab, title) {
+            document.getElementById('resultBox').classList.add('hidden-element'); if(title) document.getElementById('pageTitle').innerText = title;
+            ['dashboard', 'vpn', 'ai', 'aistudio', 'tourl', 'downloader', 'tools', 'developer'].forEach(t => {
+                const nav = document.getElementById('nav-' + t); const mobNav = document.getElementById('mob-nav-' + t); const sec = document.getElementById('section' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tab) {
+                    if(nav) nav.className = 'nav-item nav-active w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm';
+                    if(mobNav) mobNav.className = 'flex-none w-[16%] flex flex-col items-center gap-1 text-cyan-400 scale-110 pt-1 transition-all';
+                    if(sec) sec.classList.remove('hidden-element');
+                } else {
+                    if(nav) nav.className = 'nav-item nav-inactive w-full flex items-center gap-4 px-4 py-3.5 rounded-r-xl font-semibold text-sm';
+                    if(mobNav && mobNav.id !== 'mob-nav-tools' && mobNav.id !== 'mob-nav-tourl') mobNav.className = 'flex-none w-[16%] flex flex-col items-center gap-1 text-slate-500 pt-1 transition-all';
+                    if(sec) sec.classList.add('hidden-element');
+                }
+            });
+        }
+
+        // ======================= LOGIC MULTI-CLOUD UPLOADER (TOURL) =======================
+        document.getElementById('tourlForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); let fileInput = document.getElementById('tourlFile'); if (!fileInput.files[0]) return alert("Pilih file dulu!");
+            let file = fileInput.files[0]; if (file.size > 3.5 * 1024 * 1024) return alert("Maksimal 3.5 MB!");
+            document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); document.getElementById('loadingText').innerText = "Upload ke 6 Server..."; document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            let reader = new FileReader();
+            reader.onload = async function(e) {
+                const payload = { action: 'tourl', fileBase64: e.target.result, fileName: file.name, mimeType: file.type };
+                try {
+                    const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const resData = await response.json(); document.getElementById('videoLoader').classList.add('hidden-element');
+                    if (resData.status === 'success') {
+                        let html = `<div class="text-[#00ff41]">════════════════════════════════════════════════\n        [ ✨ MULTI-CLOUD UPLOADER ✨ ]\n════════════════════════════════════════════════\n\n`;
+                        const servers = [ {name: "Yupra", icon: "☁️"}, {name: "Catbox", icon: "📦"}, {name: "Quax", icon: "🦆"}, {name: "Pomf2", icon: "🎀"}, {name: "GoFile", icon: "📁"}, {name: "Fadzzz", icon: "🌩️"} ];
+                        resData.data.forEach((res, i) => { if (res.status === 'success') html += `🟢 <b>${servers[i].icon} ${servers[i].name}</b> : <br><a href="${res.url}" target="_blank" class="text-blue-400 underline break-all">${res.url}</a>\n\n`; else html += `🔴 <b>${servers[i].icon} ${servers[i].name}</b> : Gagal\n\n`; });
+                        html += `════════════════════════════════════════════════\n[OK] PROSES SELESAI.</div>`; document.getElementById('outputText').innerHTML = html;
+                    } else document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR:\n${resData.message}</span>`;
+                } catch (err) { document.getElementById('videoLoader').classList.add('hidden-element'); document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR / TIMEOUT.</span>`; }
+            }; reader.readAsDataURL(file);
+        });
+
+        // ======================= LOGIC AI IMAGE STUDIO =======================
+        function toggleAiService() {
+            const mode = document.getElementById('aiServiceMode').value;
+            if (mode === 'remini') document.getElementById('tfStyleGroup').classList.add('hidden-element');
+            else document.getElementById('tfStyleGroup').classList.remove('hidden-element');
+        }
+        function toggleTfMode() { const mode = document.getElementById('tfMode').value; if (mode === 'url') { document.getElementById('tfUrlGroup').classList.remove('hidden-element'); document.getElementById('tfUploadGroup').classList.add('hidden-element'); } else { document.getElementById('tfUploadGroup').classList.remove('hidden-element'); document.getElementById('tfUrlGroup').classList.add('hidden-element'); } }
+        
+        document.getElementById('aistudioForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); 
+            let aiMode = document.getElementById('aiServiceMode').value;
+            document.getElementById('loadingText').innerText = aiMode === 'remini' ? "Menjernihkan Foto..." : "Menyihir Foto 3D..."; 
+            document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            let mode = document.getElementById('tfMode').value; let payload = { action: aiMode, version: document.getElementById('tfVersion').value };
+            if (mode === 'url') { payload.imageUrl = document.getElementById('tfUrl').value.trim(); if (!payload.imageUrl) return alert("URL Kosong!"); executeAiStudio(payload); } 
+            else { let fileInput = document.getElementById('tfFile'); if (!fileInput.files[0]) { document.getElementById('videoLoader').classList.add('hidden-element'); return alert("Pilih foto dulu!"); } if (fileInput.files[0].size > 3.5 * 1024 * 1024) { document.getElementById('videoLoader').classList.add('hidden-element'); return alert("Maksimal 3.5 MB!"); } let reader = new FileReader(); reader.onload = function(e) { payload.imageBase64 = e.target.result; executeAiStudio(payload); }; reader.readAsDataURL(fileInput.files[0]); }
+        });
+        
+        async function executeAiStudio(payload) {
+            try {
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const resData = await response.json(); document.getElementById('videoLoader').classList.add('hidden-element');
+                if (resData.status === 'success') { 
+                    let titleHtml = payload.action === 'remini' ? '✨ Hasil Remini HD' : `🪄 Hasil ToFigure ${payload.version.toUpperCase()}`;
+                    let html = `<div class="text-center"><h3 class="text-lg font-bold text-white mb-4">${titleHtml}</h3><img src="${resData.data}" class="w-full max-w-sm mx-auto rounded-2xl border border-white/10 shadow-[0_0_20px_rgba(168,85,247,0.3)] object-cover mb-6"><a href="${resData.data}" download="Barmods_AI_${Date.now()}.jpg" class="text-white font-bold bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-3 rounded-xl inline-block shadow-lg hover:scale-105 transition"><i class="fa-solid fa-download mr-2"></i> Download Gambar</a></div>`; document.getElementById('outputText').innerHTML = html; 
+                } 
+                else document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR:\n${resData.message}</span>`;
+            } catch (err) { document.getElementById('videoLoader').classList.add('hidden-element'); document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR / TIMEOUT. Coba link foto!</span>`; }
+        }
+
+        // ======================= LOGIC DOWNLOADER, PINTEREST & SSWEB =======================
+        document.getElementById('downloaderForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const targetInput = document.getElementById('mediaUrl').value.trim();
+            document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            let actionType = document.getElementById('dlMode').value;
+            let device = 'desktop';
+
+            if (actionType === 'auto') { if (targetInput.includes('youtube.com') || targetInput.includes('youtu.be')) actionType = 'youtube'; else actionType = 'tiktok'; }
+            if (actionType === 'ssweb_pc') { actionType = 'ssweb'; device = 'desktop'; }
+            if (actionType === 'ssweb_hp') { actionType = 'ssweb'; device = 'mobile'; }
+
+            if (actionType === 'yt_play') document.getElementById('loadingText').innerText = "Mencari Lagu..."; 
+            else if (actionType === 'pinterest') document.getElementById('loadingText').innerText = "Scraping Pinterest..."; 
+            else if (actionType === 'ssweb') document.getElementById('loadingText').innerText = "Mengambil Screenshot..."; 
+            else document.getElementById('loadingText').innerText = "Mengekstrak Media...";
+
+            try {
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: actionType, username: targetInput, device }) }); 
+                const resData = await response.json(); document.getElementById('videoLoader').classList.add('hidden-element');
+                
+                if (resData.status === 'success') {
+                    const data = resData.data; let html = `<div class="text-[#00ff41]">`;
+                    
+                    if (actionType === 'ssweb') {
+                        html += `════════════════════════════════════════════════\n             [ 📸 SSWEB ${resData.device.toUpperCase()} ]\n════════════════════════════════════════════════\n\n`;
+                        html += `<img src="${resData.data}" class="w-full mx-auto rounded-xl mb-4 border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] object-contain">\n`;
+                        html += `🌐 <b>URL</b> : <a href="${resData.url}" target="_blank" class="text-blue-400 underline break-all">${resData.url}</a>\n\n`;
+                        html += `<div class="text-center"><a href="${resData.data}" download="SSWEB_${resData.device}_${Date.now()}.jpg" class="text-white font-bold bg-gradient-to-r from-blue-500 to-cyan-600 px-4 py-2 rounded-lg inline-block shadow-lg hover:scale-105 transition"><i class="fa-solid fa-download mr-2"></i> Download Screenshot</a></div>\n\n`;
+                    }
+                    else if (actionType === 'pinterest') {
+                        html += `════════════════════════════════════════════════\n             [ 🖼️ PINTEREST SEARCH ]\n════════════════════════════════════════════════\n\n🔍 <b>Query</b> : ${resData.query.toUpperCase()}\n📦 <b>Hasil</b> : Ditemukan ${data.length} Gambar HD\n\n<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 mt-2">`;
+                        data.forEach((img) => { html += `<div class="relative group overflow-hidden rounded-xl border border-white/10 shadow-lg"><a href="${img}" target="_blank"><img src="${img}" class="w-full h-32 md:h-40 object-cover group-hover:scale-110 transition duration-500 ease-in-out"></a></div>`; });
+                        html += `</div>\n<a href="https://www.pinterest.com/search/pins/?q=${encodeURIComponent(resData.query)}" target="_blank" class="text-white font-bold bg-gradient-to-r from-red-500 to-rose-600 px-4 py-2 rounded-lg inline-block shadow-lg hover:shadow-rose-500/50 transition">🌐 Buka di Pinterest</a>\n\n`;
+                    } 
+                    else if (actionType === 'yt_play') {
+                        html += `════════════════════════════════════════════════\n             [ 🎵 YOUTUBE PLAY VIP ]\n════════════════════════════════════════════════\n\n`;
+                        if (data.thumbnail) html += `<img src="${data.thumbnail}" class="w-full max-w-sm rounded-xl mb-4 border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] object-cover">\n`;
+                        html += `🎬 <b>Judul</b> : ${data.title}\n⏱️ <b>Durasi</b> : ${data.duration}\n👁️ <b>Dilihat</b> : ${data.views} kali\n\n`;
+                        if (data.audio) html += `🎵 <b>Audio</b> : <a href="${data.audio}" target="_blank" class="text-white font-bold bg-gradient-to-r from-pink-500 to-purple-600 px-4 py-2 rounded-lg inline-block mt-1 mb-2 shadow-lg hover:shadow-pink-500/50 transition border border-pink-500/30">🎧 Putar & Download Audio</a>\n`;
+                        else html += `⚠️ <b>Audio gagal ditarik dari Server.</b>\n`;
+                    } 
+                    else {
+                        const title = data.title || data.nama || data.description || "Media File";
+                        const getUrl = (arr) => { for(let v of arr) { if(!v) continue; let u = Array.isArray(v) ? v[0] : v; if(typeof u !== 'string') continue; if(u.startsWith('//')) return 'https:' + u; if(u.startsWith('/')) return 'https://www.tikwm.com' + u; if(u.startsWith('http')) return u; } return null; };
+                        html += `════════════════════════════════════════════════\n      [ ${actionType === 'youtube' ? 'YOUTUBE' : 'TIKTOK'} MEDIA DOWNLOADER ]\n════════════════════════════════════════════════\n\n📝 <b>Title</b> : ${title.substring(0, 100)}${title.length > 100 ? '...' : ''}\n\n`;
+                        if (actionType === 'youtube') {
+                            const vidUrl = getUrl([data.mp4, data.video, data.url_video]); const audUrl = getUrl([data.mp3, data.audio, data.url_audio, data.m4a]);
+                            if (vidUrl) html += `🎥 <b>Video</b> : <a href="${vidUrl}" target="_blank" class="text-cyan-400 underline font-bold bg-cyan-500/20 px-3 py-1.5 rounded inline-block mt-1 mb-2 border border-cyan-500/30">🎬 Download Video (MP4)</a>\n`;
+                            if (audUrl) html += `🎵 <b>Audio</b> : <a href="${audUrl}" target="_blank" class="text-pink-400 underline font-bold bg-pink-500/20 px-3 py-1.5 rounded inline-block mt-1 mb-2 border border-pink-500/30">🎧 Download Audio (MP3)</a>\n`;
+                        } else {
+                            const vidUrl = getUrl([data.video, data.video_url, data.nowm, data.no_watermark, data.play]); const audUrl = getUrl([data.audio, data.audio_url, data.music, data.music_url, data.title_audio]); const images = data.images || data.image || data.photo || [];
+                            if (vidUrl) html += `🎥 <b>Video</b> : <a href="${vidUrl}" target="_blank" class="text-cyan-400 underline font-bold bg-cyan-500/20 px-3 py-1.5 rounded inline-block mt-1 mb-2 border border-cyan-500/30">🎬 Download Video (No-WM)</a>\n`;
+                            if (images && images.length > 0 && !vidUrl) {
+                                html += `📸 <b>Slide Foto</b> : Ditemukan ${images.length} Foto.\n`;
+                                images.forEach((img, i) => { html += `<a href="${img}" target="_blank" class="text-orange-400 underline font-bold bg-orange-500/20 px-2 py-1 rounded inline-block mt-1 mr-1 text-xs">Foto ${i+1}</a> `; }); html += `\n\n`;
+                            }
+                            if (audUrl) html += `🎵 <b>Audio</b> : <a href="${audUrl}" target="_blank" class="text-pink-400 underline font-bold bg-pink-500/20 px-3 py-1.5 rounded inline-block mt-1 mb-2 border border-pink-500/30">🎧 Download Audio MP3</a>\n`;
+                        }
+                    }
+                    html += `\n════════════════════════════════════════════════\n[OK] SELESAI DIPROSES.</div>`; document.getElementById('outputText').innerHTML = html; 
+                } else { document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR API:\n${resData.message}</span>`; }
+            } catch (err) { document.getElementById('videoLoader').classList.add('hidden-element'); document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] KONEKSI ERROR / TIMEOUT.</span>`; }
+        });
+
+        // ======================= LOGIC AI, VPN & TOOLS =======================
+        async function sendAiMessage() {
+            const input = document.getElementById('aiInputPrompt'); const prompt = input.value.trim(); if(!prompt) return;
+            const chatLogBox = document.getElementById('chatLogBox'); chatLogBox.innerHTML += `<div class="flex gap-3 max-w-[85%] ml-auto justify-end"><div class="bg-gradient-to-r from-cyan-600 to-blue-600 border border-cyan-500/30 px-4 py-2.5 rounded-2xl rounded-tr-none text-sm text-white">${prompt}</div></div>`;
+            input.value = ""; chatLogBox.scrollTop = chatLogBox.scrollHeight; const loadId = 'ai-load-' + Date.now();
+            chatLogBox.innerHTML += `<div class="flex gap-3 max-w-[85%]" id="${loadId}"><div class="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400 text-xs"><i class="fa-solid fa-robot"></i></div><div class="bg-slate-900/80 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm text-yellow-400">Memproses...</div></div>`;
+            try {
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ai_chat', username: prompt }) }); const resData = await response.json(); document.getElementById(loadId).remove(); let replyText = (resData.status === 'success') ? resData.reply : `Error: ${resData.message}`;
+                chatLogBox.innerHTML += `<div class="flex gap-3 max-w-[85%]"><div class="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 text-xs"><i class="fa-solid fa-robot"></i></div><div class="bg-slate-900/80 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm text-slate-300">${replyText.replace(/\n/g, '<br>')}</div></div>`;
+            } catch (err) {} chatLogBox.scrollTop = chatLogBox.scrollHeight;
+        }
+
+        document.getElementById('vpnForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('btnSubmitVpn');
+            document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); document.getElementById('loadingText').innerText = "Authenticating PIN..."; document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const payload = { action: document.getElementById('action').value, protocol: document.getElementById('protocol').value, username: document.getElementById('username').value, password: document.getElementById('password').value, exp: document.getElementById('exp').value, quota: document.getElementById('quota').value, iplimit: document.getElementById('iplimit').value, dev_pin: document.getElementById('devPin').value };
+            try {
+                const response = await fetch('/api/vpn', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const resData = await response.json(); document.getElementById('videoLoader').classList.add('hidden-element');
+                if (resData.status === 'success' || (!resData.error && resData.status !== 'error')) { document.getElementById('outputText').innerHTML = `<span class="text-[#00ff41]">${formatVpnOutput(payload.action, payload.protocol, resData.data || resData, payload)}</span>`; } else { document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] ERROR:\n${resData.message}</span>`; }
+            } catch (err) { document.getElementById('videoLoader').classList.add('hidden-element'); document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] CONNECTION LOST:\n${err.message}</span>`; }
+        });
+
+        document.getElementById('toolsForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const targetIp = document.getElementById('ipTarget').value.trim();
+            document.getElementById('resultBox').classList.remove('hidden-element'); document.getElementById('outputText').innerHTML = ""; document.getElementById('videoLoader').classList.remove('hidden-element'); document.getElementById('loadingText').innerText = "Scanning Network..."; document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            try {
+                const response = await fetch(`https://ipwho.is/${targetIp}`); const data = await response.json(); document.getElementById('videoLoader').classList.add('hidden-element');
+                if (data.success) { document.getElementById('outputText').innerHTML = `<span class="text-[#00ff41]">[+] TARGET ACQUIRED: ${data.ip}\n==========================================\n> NETWORK INFORMATION\n  ISP       : ${data.connection.isp}\n  ASN       : ${data.connection.asn}\n  Org       : ${data.connection.org}\n  Type      : ${data.type}\n\n> LOCATION DATA\n  Country   : ${data.country} (${data.country_code}) \n  Region    : ${data.region}\n  City      : ${data.city}\n==========================================\n[OK] TRACKING COMPLETED.</span>`; } else { document.getElementById('outputText').innerHTML = `<span class="text-red-500">[!] TRACKING FAILED:\nInvalid IP/Domain (${data.message})</span>`; }
+            } catch (err) { document.getElementById('videoLoader').classList.add('hidden-element'); document.getElementById('outputText').innerHTML = "<span class='text-red-500'>[!] TRACKING ERROR.</span>"; }
+        });
+
+        const actionSel = document.getElementById('action'); const protocolSel = document.getElementById('protocol');
+        const passGroup = document.getElementById('passGroup'); const detailGroup = document.getElementById('detailGroup'); const quotaGroup = document.getElementById('quotaGroup');
+        const updateFormVisibility = () => {
+            const action = actionSel.value; const protocol = protocolSel.value;
+            if (action === 'delete') { detailGroup.classList.add('hidden-element'); passGroup.classList.add('hidden-element'); } 
+            else { detailGroup.classList.remove('hidden-element'); if (protocol === 'ssh' && action !== 'renew') passGroup.classList.remove('hidden-element'); else passGroup.classList.add('hidden-element'); if (protocol === 'ssh') quotaGroup.classList.add('hidden-element'); else quotaGroup.classList.remove('hidden-element'); }
+        };
+        actionSel.addEventListener('change', updateFormVisibility); protocolSel.addEventListener('change', updateFormVisibility); updateFormVisibility();
+
+        function copyResult() { navigator.clipboard.writeText(document.getElementById('outputText').innerText); const btn = document.querySelector('#resultBox button'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i> Copied'; setTimeout(() => { btn.innerHTML = originalHTML; }, 2000); }
+
+        function formatVpnOutput(action, protocol, data, formPayload = {}) {
+            if (action === 'delete') return `[OK] SUCCESS: Akun ${data.username || formPayload.username || ''} telah dihapus dari database.`;
+            if (action === 'renew') return `[OK] RENEW SUCCESS:\n════════════════════════════════════════════════\n  Username  : ${data.username || formPayload.username || ''}\n  Exp. Baru : ${data.expired || data.exp || ''}\n════════════════════════════════════════════════`;
+            if (protocol === 'ssh') {
+                const user = data.username || data.user || formPayload.username || 'Unknown'; const pass = data.password || data.pass || formPayload.password || '1'; const domain = data.domain || data.host || formPayload.domain || 'jagoan.barmods-zivpn.my.id'; const limit = data.iplimit || data.limit_ip || formPayload.iplimit || '2'; const days = formPayload.exp || '30'; const exp = data.expired || data.exp || 'Unknown Date'; const isp = data.isp || 'PT Atlantic Aksa Group';
+                return `════════════════════════════════════════════════\n                 [ SSH OPENVPN ]\n════════════════════════════════════════════════\nRemark       : ${user}\nPassword     : ${pass}\nLimit Ip     : ${limit} Device\nDomain       : ${domain}\nISP          : ${isp}\nOpenSSH      : 443, 80, 22\nPort UDP     : 1-65535\nSSH WS       : 80, 8080, 8880, 2082\nSSL/TLS      : 443\nOVPN UDP     : 2200\n────────────────────────────────────────────────\nCLOUDFLARE\nPort 80      : ${domain}:80@${user}:${pass}\nPort 443     : ${domain}:443@${user}:${pass}\nUdp Custom   : ${domain}:1-65535@${user}:${pass}\nOpenVpn      : https://${domain}:81/\nAccount      : https://${domain}:81/ssh-${user}.txt\n────────────────────────────────────────────────\nPayload WS   : GET / HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: websocket[crlf][crlf]\n────────────────────────────────────────────────\nPayload TLS  : GET wss://${domain}/ HTTP/1.1[crlf]Host: [host][crlf]Connection: Upgrade[crlf]User-Agent: [ua][crlf]Upgrade: websocket[crlf][crlf]\n────────────────────────────────────────────────\nPayload ENCD : HEAD / HTTP/1.1[crlf]Host: Masukan_Bug[crlf][crlf]PATCH / HTTP/1.1[crlf]Host: [host][crlf]Upgrade: websocket[crlf][crlf][split]HTTP/ 1[crlf][crlf]\n────────────────────────────────────────────────\nDays in      : ${days} Day\nExpiry in    : ${exp}\n════════════════════════════════════════════════\n               SCRIPT BY barmods\n════════════════════════════════════════════════`;
+            }
+            const P = protocol.toUpperCase(); const p = protocol.toLowerCase(); const user = data.username || data.user || formPayload.username || 'Unknown'; const domain = data.domain || data.host || formPayload.domain || 'jagoan.barmods-zivpn.my.id'; const uuid = data.uuid || data.id || data.password || 'auto-generated-uuid'; const limit = data.iplimit || data.limit_ip || formPayload.iplimit || '2'; const quotaVal = formPayload.quota === "0" || !formPayload.quota ? "Unlimited" : (formPayload.quota + " GB"); const exp = data.expired || data.exp || 'Unknown Date';
+            let urlTls = data[`${p}_tls`] || data.tls || data.link_tls || ''; let urlHttp = data[`${p}_ntls`] || data.ntls || data.http || data.link_http || ''; let urlGrpc = data[`${p}_grpc`] || data.grpc || data.link_grpc || '';
+            if (!urlTls) { if (p === 'vless') urlTls = `vless://${uuid}@${domain}:443?path=/${p}&security=tls&host=${domain}&encryption=none&type=ws&sni=${domain}#${user}`; else if (p === 'trojan') urlTls = `trojan://${uuid}@${domain}:443?path=/${p}&security=tls&host=${domain}&type=ws&sni=${domain}#${user}`; else urlTls = (data.vmess_tls || 'Tautan dibuat oleh VPS...'); }
+            if (!urlHttp) { if (p === 'vless') urlHttp = `vless://${uuid}@${domain}:80?path=/${p}&security=none&host=${domain}&encryption=none&type=ws#${user}`; else if (p === 'trojan') urlHttp = `trojan://${uuid}@${domain}:80?path=/${p}&security=none&host=${domain}&type=ws#${user}`; else urlHttp = (data.vmess_ntls || 'Tautan dibuat oleh VPS...'); }
+            if (!urlGrpc) { if (p === 'vless') urlGrpc = `vless://${uuid}@${domain}:443?mode=gun&security=tls&encryption=none&type=grpc&serviceName=${p}-grpc&sni=${domain}#${user}`; else if (p === 'trojan') urlGrpc = `trojan://${uuid}@${domain}:443?mode=gun&security=tls&type=grpc&serviceName=${p}-grpc&sni=${domain}#${user}`; else urlGrpc = (data.vmess_grpc || 'Tautan dibuat oleh VPS...'); }
+            return `────────────────────── \n               *✨${P} ACCOUNT✨*\n──────────────────────\n*Username* : \`${user}\`\n*Domain* : \`${domain}\`\n*Port TLS* : \`443,8443\`\n*Port HTTP*: \`80,8080,2086,8880\`\n*UUID* : \`${uuid}\`\n*Path* : \`/${p}\`\n*Path gRPC*: \`${p}-grpc\`\n──────────────────────\n🫧*URL TLS:*\n\`\`\`${urlTls}\`\`\`\n🫧*URL HTTP:*\n\`\`\`${urlHttp}\`\`\`\n🫧*URL gRPC:*\n\`\`\`${urlGrpc}\`\`\`\n──────────────────────\n🫧*Save Account*: [Click Link](https://${domain}:81/${p}-${user}.txt)\n──────────────────────\n🚀*Quota*: \`${quotaVal}\`\n🌤*IP Limit*: \`${limit} IP\`\n⏳*Expired*: \`${exp}\`\n──────────────────────\n✨ Selamat menggunakan layanan kami! ✨`;
+        }
+    </script>
+</body>
+</html>
