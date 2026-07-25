@@ -160,7 +160,6 @@ module.exports = async (req, res) => {
             htmlOut += `⚠️ <b>Tenggang</b>   : ${sp.grace_period?.value || "-"}\n\n`;
 
             if (resData.data?.hasil) {
-                // Perbaikan Anti-Blank Parser
                 const rawText = String(resData.data.hasil)
                     .replace(/<br\s*\/?>/gi, "\n")
                     .replace(/<\/li>/gi, "\n")
@@ -195,15 +194,10 @@ module.exports = async (req, res) => {
                     }
                     if (!parsedData && rawText) htmlOut += `\n${rawText}\n`;
                 } else if (rawText) {
-                    // Jika API KMSP mengembalikan teks tanpa Emoji, susun menjadi list yang rapi
                     const rawLines = rawText.split(/\r?\n/).map(v => v.trim()).filter(Boolean);
                     htmlOut += `\n`;
-                    rawLines.forEach(line => {
-                        htmlOut += `  🔸 ${line}\n`;
-                    });
-                } else {
-                    htmlOut += `❌ <i>Tidak ada info detail kuota.</i>\n`;
-                }
+                    rawLines.forEach(line => { htmlOut += `  🔸 ${line}\n`; });
+                } else { htmlOut += `❌ <i>Tidak ada info detail kuota.</i>\n`; }
             } else { htmlOut += `❌ <i>Tidak ada info kuota.</i>\n`; }
             
             htmlOut += `\n════════════════════════════════════════════════\n[OK] SOURCE: KMSP API</div>`;
@@ -236,7 +230,35 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 5: SOSMED DOWNLOADER, YT PLAY & PINTEREST
+    // FITUR 5: IQC (IPHONE QUOTE CHAT) 💬
+    // =======================================================
+    if (action === 'iqc') {
+        if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ APIKEY BOTCAHX KOSONG!" });
+        if (!username) return res.status(400).json({ status: "error", message: "Teks quote tidak boleh kosong!" });
+        try {
+            const apiUrl = `https://api.botcahx.eu.org/api/maker/iqc?text=${encodeURIComponent(username)}&apikey=${btcKey}`;
+            let btcRes = await axios.get(apiUrl, { responseType: 'arraybuffer', timeout: 35000, validateStatus: () => true });
+            const contentType = btcRes.headers['content-type'] || '';
+            
+            if (contentType.includes('application/json') || !contentType.includes('image')) {
+                const textResponse = Buffer.from(btcRes.data).toString('utf-8');
+                let jsonResponse;
+                try { jsonResponse = JSON.parse(textResponse); } catch(e) { return res.status(400).json({ status: "error", message: `IQC Gagal. Balasan: ${textResponse.substring(0, 50)}...` }); }
+                
+                if (jsonResponse.status && jsonResponse.result) {
+                    let finalUrl = jsonResponse.result.url || jsonResponse.result;
+                    let imgDownload = await axios.get(finalUrl, { responseType: 'arraybuffer' });
+                    return res.status(200).json({ status: "success", data: `data:${imgDownload.headers['content-type']};base64,${Buffer.from(imgDownload.data).toString('base64')}` });
+                }
+                return res.status(400).json({ status: "error", message: jsonResponse.message || jsonResponse.error || "Gagal membuat Quote." });
+            }
+            const finalBase64 = Buffer.from(btcRes.data).toString('base64');
+            return res.status(200).json({ status: "success", data: `data:${contentType};base64,${finalBase64}` });
+        } catch (error) { return res.status(500).json({ status: "error", message: `IQC Error: ${error.message}` }); }
+    }
+
+    // =======================================================
+    // FITUR 6: SOSMED DOWNLOADER, YT PLAY & PINTEREST
     // =======================================================
     if (action === 'tiktok' || action === 'youtube' || action === 'yt_play' || action === 'pinterest') {
         if (!btcKey) return res.status(200).json({ status: "error", message: "⚠️ APIKEY BOTCAHX BELUM DISYNC!" });
@@ -264,7 +286,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 6: CORE AI BARMODS ASSISTANT
+    // FITUR 7: CORE AI BARMODS ASSISTANT
     // =======================================================
     if (action === 'ai_chat') {
         if (!groqKey) return res.status(200).json({ status: "success", reply: "API Key Groq Kosong." });
@@ -275,7 +297,7 @@ module.exports = async (req, res) => {
     }
 
     // =======================================================
-    // FITUR 7: VPN PANEL DEPLOYMENT
+    // FITUR 8: VPN PANEL DEPLOYMENT
     // =======================================================
     if (!domain || !auth || !adminPin) return res.status(500).json({ status: "error", message: "FATAL ERROR: Variabel .env belum lengkap!" });
     if (dev_pin !== adminPin) return res.status(403).json({ status: "error", message: "AKSES DITOLAK! Developer PIN salah." });
